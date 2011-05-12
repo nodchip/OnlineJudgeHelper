@@ -468,6 +468,33 @@ class CodeChef(OnlineJudge):
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
 
+class ImoJudge(OnlineJudge):
+    contest_id = None
+    def __init__(self, options, args):
+        OnlineJudge.__init__(self, options, args[1])
+        self.contest_id = args[0]
+        
+    def get_input_file_name(self, index):
+        return self.contest_id + '.' + self.problem_id + '.' + str(index) + '.in.txt'
+    
+    def get_output_file_name(self, index):
+        return self.contest_id + '.' + self.problem_id + '.' + str(index) + '.out.txt'
+    
+    def get_url(self):
+        return 'http://judge.imoz.jp/page.php?page=view_problem&pid=%s&cid=%s' % (self.problem_id, self.contest_id)
+
+    def download(self):
+        html = self.download_html()
+        p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
+        result = p.findall(html)
+        n = len(result) / 2;
+        for index in range(n):
+            input_file_name = self.get_input_file_name(index)
+            output_file_name = self.get_output_file_name(index)
+            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
+            open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
+        return True
+
 def main():
     parser = OptionParser()
     # function
@@ -500,6 +527,9 @@ def main():
     parser.add_option("--codechef", action="store_true",
                       dest="codechef", default=False,
                       help="CodeChef")
+    parser.add_option("--imojudge", action="store_true",
+                      dest="imojudge", default=False,
+                      help="Imo Judge")
     
     # misc
     parser.add_option("-t", "--titech-pubnet", action="store_true",
@@ -517,7 +547,9 @@ def main():
         return
     
     online_judge = None
-    if options.codechef:
+    if options.imojudge:
+        online_judge = ImoJudge(options, args)
+    elif options.codechef:
         online_judge = CodeChef(options, args)
     elif options.codeforces:
         online_judge = CodeForces(options, args)
