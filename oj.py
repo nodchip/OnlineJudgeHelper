@@ -495,6 +495,46 @@ class ImoJudge(OnlineJudge):
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
 
+class AtCoder(OnlineJudge):
+    def __init__(self, options, args):
+        OnlineJudge.__init__(self, options, args[0])
+        
+    def get_url(self):
+        return 'http://atcoder.jp/problem/detail/%s' % self.problem_id
+
+    def download(self):
+        html = self.download_html()
+        p = re.compile('<pre class="literal-block">(.+?)</pre>', re.M | re.S | re.I)
+        result = p.findall(html)
+        n = len(result) / 2;
+        for index in range(n):
+            input_file_name = self.get_input_file_name(index)
+            output_file_name = self.get_output_file_name(index)
+            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
+            open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
+        return True
+
+    def submit(self):
+        opener = self.get_opener()
+    
+        setting = json.load(open('setting.json'))['atcoder']
+        postdata = dict()
+        postdata['mail'] = setting['user_id']
+        postdata['password'] = setting['password']
+        postdata['login'] = 'login'
+        params = urllib.urlencode(postdata)
+        p = opener.open('http://atcoder.jp/login/', params)
+        print 'Login ... ' + str(p.getcode())
+
+        postdata = dict()
+        postdata['problem_id'] = self.problem_id
+        postdata['language_id'] = '2'
+        postdata['source_code'] = open(self.get_source_file_name()).read()
+        postdata['submit'] = 'submit'
+        params = urllib.urlencode(postdata)
+        p = opener.open('http://atcoder.jp/problem/%s/submit' % self.problem_id, params)
+        print 'Submit ... ' + str(p.getcode())
+
 def main():
     parser = OptionParser()
     # function
@@ -530,6 +570,9 @@ def main():
     parser.add_option("--imojudge", action="store_true",
                       dest="imojudge", default=False,
                       help="Imo Judge")
+    parser.add_option("--atcoder", action="store_true",
+                      dest="atcoder", default=False,
+                      help="@coder")
     
     # misc
     parser.add_option("-t", "--titech-pubnet", action="store_true",
@@ -538,6 +581,9 @@ def main():
     parser.add_option("-e", action="store",
                       dest="floating_point", default=None,
                       help="Use floating point validator and set max error")
+    parser.add_option('-d', '--download', action="store_true",
+                      dest='download', default=False,
+                      help="Only download the test cases")
 
     (options, args) = parser.parse_args()
     
@@ -547,7 +593,9 @@ def main():
         return
     
     online_judge = None
-    if options.imojudge:
+    if options.atcoder:
+        online_judge = AtCoder(options, args)
+    elif options.imojudge:
         online_judge = ImoJudge(options, args)
     elif options.codechef:
         online_judge = CodeChef(options, args)
@@ -570,6 +618,8 @@ def main():
         online_judge.submit()
     elif options.create_solution_template_file:
         online_judge.create_solution_template_file()
+    elif options.download:
+        online_judge.download()
     else:
         online_judge.check()
     
