@@ -1,0 +1,78 @@
+オンラインジャッジ補助スクリプト OnlineJudgeHelper
+
+1. はじめに
+このスクリプトは各種オンラインジャッジを利用する際、
+サンプル入出力データを用いたテストやソースコードの提出等を
+素早く行うことを目的に作りました。
+まだ未完成のスクリプトですのでパッチ等は大歓迎です。
+
+2. 仕様
+
+2-1. 機能
+- 解答ソースコードのコンパイル
+- サンプル入出力データのダウンロード
+- サンプル入出力データとの一致確認
+-- 単純diffバリデータ
+-- 浮動小数バリデータ
+- 解答ソースコードの提出
+
+2-2. 対応オンラインジャッジ
+- PKU JudgeOnline
+- CodeForces (サンプル入出力データのダウンロードのみ)
+- MJudge
+- AOJ
+- CodeChef (サンプル入出力データのダウンロードのみ)
+- ImoJudge (サンプル入出力データのダウンロードのみ)
+- AtCoder
+- ZOJContest
+
+3. 使い方
+./oj.py [options] ... [contest_id] problem_id
+
+3-1. 初めて使う場合
+設定ファイルを"setting.json"という名前で作成し、
+oj.pyと同じディレクトリに配置して下さい。
+内容は各種オンラインジャッジのユーザーID、パスワード、起動するブラウザを
+json形式で書いたものです。
+
+例:
+{
+  "atcoder":{"user_id":"nodchip","password":"hogehoge", "browser":"C:/Users/nodchip/AppData/Local/Google/Chrome/Application/chrome.exe"},
+  "zoj":{"user_id":"nodchip","password":"fufagufa", "browser":"C:/Users/nodchip/AppData/Local/Google/Chrome/Application/chrome.exe"}
+}
+
+3-2. オプション
+  -h, --help            ヘルプを出力します
+  -c, --create-solution-template-file
+                        解答ソースコードのコンパイルと
+                        サンプル入出力データとの一致確認を行います
+  -s, --submit          解答ソースコードを提出します
+  -a, --add-test-case-template
+                        入出力データのひな形ファイルを追加作成します
+  -i SOURCE_FILE_NAME, --source-file-name=SOURCE_FILE_NAME
+                        ソースコードファイル名を指定します
+  -t, --titech-pubnet   東工大内ネットワークからプロキシを使用して接続します
+  -e FLOATING_POINT     許容誤差を指定して浮動小数バリデータを使用します
+  -d, --download        サンプル入出力データのダウンロードのみ行います
+
+  --poj                 PKU JudgeOnline
+  --codeforces          CodeForces
+  --mjudge              M-Judge
+  --aoj                 Aizu Online Judge
+  --codechef            CodeChef
+  --imojudge            Imo Judge
+  --atcoder             @coder
+  --zojcontest          ZOJ Contest
+
+4. その他
+OnlineJudgeHelperは幾つかのブログで紹介されました。
+この場を借りて御礼申し上げます。
+
+- [O] PKUやCodeforcesなど5つのオンラインジャッジ対応の神スクリプト http://diary.overlasting.net/2011-02-12-1.html
+- 情報系の備忘録: 神スクリプトの使い方 Codeforces編 http://joho-log.blogspot.jp/2011/08/codeforces.html
+- こどふぉのすすめ - wisteryメモ http://d.hatena.ne.jp/wistery_k/20111226
+
+5. 変更履歴
+2012-04-14
+- 新AtCoderに対応した
+- 提出時の言語選択をソースコードファイル名を元に行うようにした

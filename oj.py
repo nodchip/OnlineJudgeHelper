@@ -3,20 +3,23 @@ from optparse import OptionParser
 import cookielib
 import json
 import os
+import os.path
 import re
+import shutil
 import subprocess
+import time
 import urllib
 import urllib2
-import time
-import shutil
 
 class Validator:
     def validate(self, answer_path, output_path):
         raise NotImplementedError
 
+
 class DiffValidator(Validator):
     def validate(self, answer_path, output_path):
         return subprocess.call(['diff', answer_path, output_path, '-y', '--strip-trailing-cr', '-W', '79', '-a', '-d']) == 0
+    
     
 class FloatingPointValidator(Validator):
     absolute_error = None
@@ -59,71 +62,107 @@ class FloatingPointValidator(Validator):
             print '%-25s %-25s %s %e' % (answer_line, output_line, separator, diff)
         return result
 
+
 class Solution:
     def __init__(self, source_file_name):
         self.source_file_name = source_file_name
     def compile(self):
         raise NotImplementedError
     def execute(self, input_file_path, output_file_path):
+        start_time = time.time()
+        p = subprocess.Popen(self.get_execute_command_line(),
+                             stdin=open(input_file_path, 'r'),
+                             stdout=open(output_file_path, 'w'))
+        if p.wait() != 0:
+            print 'RuntimeError?'
+            exit(-1)
+        end_time = time.time()
+        return end_time - start_time
+    def get_execute_command_line(self):
         raise NotImplementedError
+
 
 class SolutionC(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return subprocess.call(['gcc', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', self.source_file_name]) == 0
-    def execute(self, input_file_path, output_file_path):
-        start_time = time.time()
-        p = subprocess.Popen(['./a.exe'], stdin=open(input_file_path, 'r'), stdout=open(output_file_path, 'w'))
-        if p.wait() != 0:
-            print 'RuntimeError?'
-            exit(-1)
-        end_time = time.time()
-        return end_time - start_time
+    def get_execute_command_line(self):
+        return ['./a.exe']
+
 
 class SolutionCxx(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return subprocess.call(['g++', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', self.source_file_name]) == 0
-    def execute(self, input_file_path, output_file_path):
-        start_time = time.time()
-        p = subprocess.Popen(['./a.exe'], stdin=open(input_file_path, 'r'), stdout=open(output_file_path, 'w'))
-        if p.wait() != 0:
-            print 'RuntimeError?'
-            exit(-1)
-        end_time = time.time()
-        return end_time - start_time
+    def get_execute_command_line(self):
+        return ['./a.exe']
+
 
 class SolutionJava(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return subprocess.call(['javac', self.source_file_name]) == 0
-    def execute(self, input_file_path, output_file_path):
-        start_time = time.time()
+    def get_execute_command_line(self):
         class_name = self.source_file_name.split('.')[0]
-        p = subprocess.Popen(['java', '-Xmx256m', class_name], stdin=open(input_file_path, 'r'), stdout=open(output_file_path, 'w'))
-        if p.wait() != 0:
-            print 'RuntimeError?'
-            exit(-1)
-        end_time = time.time()
-        return end_time - start_time
+        return ['java', '-Xmx256m', class_name]
+
 
 class SolutionIo(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return True
-    def execute(self, input_file_path, output_file_path):
-        start_time = time.time()
-        class_name = self.source_file_name.split('.')[0]
-        p = subprocess.Popen(['io', self.source_file_name], stdin=open(input_file_path, 'r'), stdout=open(output_file_path, 'w'))
-        if p.wait() != 0:
-            print 'RuntimeError?'
-            exit(-1)
-        end_time = time.time()
-        return end_time - start_time
+    def get_execute_command_line(self):
+        return ['io', self.source_file_name]
+
+
+class SolutionPhp(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_command_line(self):
+        return ['php', self.source_file_name]
+
+
+class SolutionPython(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_command_line(self):
+        return ['python', self.source_file_name]
+
+
+class SolutionPerl(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_command_line(self):
+        return ['perl', self.source_file_name]
+
+
+class SolutionRuby(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_command_line(self):
+        return ['ruby', self.source_file_name]
+
+
+class SolutionHaskell(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return subprocess.call(['ghc', '-o', 'a.exe', self.source_file_name]) == 0
+    def get_execute_command_line(self):
+        return ['./a.exe']
+
 
 class OnlineJudge:
     def __init__(self, options, problem_id):
@@ -133,6 +172,7 @@ class OnlineJudge:
             self.proxies = {'http': 'http://proxy.noc.titech.ac.jp:3128'}
         else:
             self.proxies = None
+        self.opener = None
     
     def get_url(self):
         raise NotImplementedError
@@ -165,21 +205,23 @@ class OnlineJudge:
     
     def download_html(self):
         url = self.get_url()
-        return urllib.urlopen(url, proxies=self.proxies).read()
+        return self.get_opener().open(url).read()
     
     def download(self):
         raise NotImplementedError
     
     def get_opener(self):
-        cj = cookielib.CookieJar()
-        cjhdr = urllib2.HTTPCookieProcessor(cj)
-        if self.proxies == None:
-            return urllib2.build_opener(cjhdr)
-        else:
-            return  urllib2.build_opener(cjhdr, urllib2.ProxyHandler(self.proxies))
+        if self.opener == None:
+            cj = cookielib.CookieJar()
+            cjhdr = urllib2.HTTPCookieProcessor(cj)
+            if self.proxies == None:
+                self.opener = urllib2.build_opener(cjhdr)
+            else:
+                self.opener = urllib2.build_opener(cjhdr, urllib2.ProxyHandler(self.proxies))
+        return self.opener
 
     def get_solution(self):
-        source_file_name = self.get_source_file_name() 
+        source_file_name = self.get_source_file_name().lower()
         if source_file_name.endswith('.c'):
             return SolutionC(source_file_name)
         elif source_file_name.endswith('.cpp') or source_file_name.endswith('.cc'):
@@ -188,6 +230,16 @@ class OnlineJudge:
             return SolutionJava(source_file_name)
         elif source_file_name.endswith('.io'):
             return SolutionIo(source_file_name)
+        elif source_file_name.endswith('.php'):
+            return SolutionPhp(source_file_name)
+        elif source_file_name.endswith('.py'):
+            return SolutionPython(source_file_name)
+        elif source_file_name.endswith('.pl'):
+            return SolutionPerl(source_file_name)
+        elif source_file_name.endswith('.rb'):
+            return SolutionRuby(source_file_name)
+        elif source_file_name.endswith('.hs'):
+            return SolutionHaskell(source_file_name)
         else:
             return Solution(source_file_name)
     
@@ -274,7 +326,16 @@ class OnlineJudge:
             print 'Copied %s to %s' % (src, dst)
         except IOError, (errno, strerror):
             print "I/O error(%s): %s" % (errno, strerror)
+
+    def get_language_id(self):
+        source_file_name = self.get_source_file_name()
+        root, ext = os.path.splitext(source_file_name)
+        return self.get_language_id_from_extension()[ext.lower()]
     
+    def get_language_id_from_extension(self):
+        raise NotImplementedError
+        
+
 class POJ(OnlineJudge):
     def __init__(self, options, args):
         OnlineJudge.__init__(self, options, args[0])
@@ -306,7 +367,7 @@ class POJ(OnlineJudge):
         print 'Login ... ' + str(p.getcode())
         
         postdata = dict()
-        postdata['language'] = '4'
+        postdata['language'] = self.get_language_id()
         postdata['problem_id'] = self.problem_id
         postdata['source'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'Submit'
@@ -315,7 +376,14 @@ class POJ(OnlineJudge):
         print 'Submit ... ' + str(p.getcode())
         
         time.sleep(2.0)
-        subprocess.call([setting['browser'], 'http://poj.org/status?problem_id=&user_id=' + setting['user_id'] + '&result=&language='])    
+        subprocess.call([setting['browser'], 'http://poj.org/status?problem_id=&user_id=' + setting['user_id'] + '&result=&language='])
+    
+    def get_language_id_from_extension(self):
+        return {'.cpp':'4',
+                '.cc':'4',
+                '.c':'5',
+                '.java':'2',}
+
 
 class CodeForces(OnlineJudge):
     contest_id = None
@@ -334,7 +402,7 @@ class CodeForces(OnlineJudge):
 
     def download(self):
         html = self.download_html()
-        p = re.compile('<pre class="content">(.+?)</pre>', re.M | re.S | re.I)
+        p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
         result = p.findall(html)
         n = len(result) / 2;
         for index in range(n):
@@ -343,6 +411,7 @@ class CodeForces(OnlineJudge):
             open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
+
 
 class MJudge(OnlineJudge):
     def __init__(self, options, args):
@@ -401,6 +470,7 @@ class MJudge(OnlineJudge):
     
         subprocess.call([setting['browser'], 'http://m-judge.maximum.vc/result.cgi'])    
 
+
 class AOJ(OnlineJudge):
     def __init__(self, options, args):
         OnlineJudge.__init__(self, options, args[0])
@@ -431,7 +501,7 @@ class AOJ(OnlineJudge):
         postdata['userID'] = setting['user_id'] 
         postdata['password'] = setting['password']
         postdata['problemNO'] = self.problem_id
-        postdata['language'] = 'C++'
+        postdata['language'] = self.get_language_id()
         postdata['sourceCode'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'Send'
         params = urllib.urlencode(postdata)
@@ -439,7 +509,14 @@ class AOJ(OnlineJudge):
         print 'Submit ... ' + str(p.getcode())
     
         time.sleep(2.0)
-        subprocess.call([setting['browser'], 'http://rose.u-aizu.ac.jp/onlinejudge/Status.jsp'])    
+        subprocess.call([setting['browser'], 'http://rose.u-aizu.ac.jp/onlinejudge/Status.jsp'])
+    
+    def get_language_id_from_extension(self):
+        return {'.cpp':'C++',
+                '.cc':'C++',
+                '.c':'C',
+                '.java':'JAVA',}
+
 
 class CodeChef(OnlineJudge):
     contest_id = None
@@ -468,6 +545,7 @@ class CodeChef(OnlineJudge):
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
 
+
 class ImoJudge(OnlineJudge):
     contest_id = None
     def __init__(self, options, args):
@@ -495,16 +573,103 @@ class ImoJudge(OnlineJudge):
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
 
+
 class AtCoder(OnlineJudge):
+    contest_id = None
+    def __init__(self, options, args):
+        OnlineJudge.__init__(self, options, args[1])
+        self.contest_id = int(args[0])
+        
+    def get_url(self):
+        return "http://arc%03d.contest.atcoder.jp/tasks/arc%03d_%d" % (self.contest_id, self.contest_id, int(self.problem_id))
+    
+    def get_opener(self):
+        if self.opener == None:
+            opener = OnlineJudge.get_opener(self)
+            
+            setting = json.load(open('setting.json'))['atcoder']
+            postdata = dict()
+            postdata['name'] = setting['user_id']
+            postdata['password'] = setting['password']
+            postdata['submit'] = 'login'
+            params = urllib.urlencode(postdata)
+            p = opener.open('http://arc001.contest.atcoder.jp/login', params)
+            print 'Login ... ' + str(p.getcode())
+        return self.opener
+
+    def download(self):
+        html = self.download_html()
+        p = re.compile('<pre class="prettyprint linenums">(.+?)</pre>', re.M | re.S | re.I)
+        result = p.findall(html)
+        n = len(result) / 2
+        for index in range(n):
+            input_file_name = self.get_input_file_name(index)
+            output_file_name = self.get_output_file_name(index)
+            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
+            open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
+        return True
+
+    def submit(self):
+        html = self.download_html()
+        
+        p = re.compile('"/submit\\?task_id=(.+?)"', re.M | re.S | re.I)
+        result = p.findall(html)
+        task_id = int(result[0])
+
+        opener = self.get_opener()
+    
+        postdata = dict()
+        postdata['task_id'] = task_id
+        postdata['language_id_%d' % task_id] = self.get_language_id()
+        postdata['source_code'] = open(self.get_source_file_name()).read()
+        postdata['submit'] = 'submit'
+        params = urllib.urlencode(postdata)
+        p = opener.open('http://arc%03d.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
+        print 'Submit ... ' + str(p.getcode())
+        
+        time.sleep(2.0)
+        setting = json.load(open('setting.json'))['atcoder']
+        subprocess.call([setting['browser'], 'http://arc%03d.contest.atcoder.jp/submissions/me' % self.contest_id])    
+    
+    def get_language_id_from_extension(self):
+        return {'.cpp':'2',
+                '.cc':'2',
+                '.c':'1',
+                '.java':'3',
+                '.php':'5',
+                '.py':'7',
+                '.pl':'8',
+                '.rb':'9',
+                '.hs':'11'}
+
+
+class ZOJContest(OnlineJudge):
     def __init__(self, options, args):
         OnlineJudge.__init__(self, options, args[0])
         
     def get_url(self):
-        return 'http://atcoder.jp/problem/detail/%s' % self.problem_id
+        return 'http://acm.zju.edu.cn/onlinejudge/showContestProblem.do?problemId=%s' % self.problem_id
+
+    def get_opener(self):
+        if self.opener == None:
+            opener = OnlineJudge.get_opener(self)
+            
+            setting = json.load(open('setting.json'))['zoj']
+            postdata = dict()
+            postdata['handle'] = setting['user_id']
+            postdata['password'] = setting['password']
+            postdata['rememberMe'] = '1'
+            postdata['submit'] = 'Login'
+            params = urllib.urlencode(postdata)
+            p = opener.open('http://acm.zju.edu.cn/onlinejudge/login.do', params)
+            print 'Login ... ' + str(p.getcode())
+        return self.opener
 
     def download(self):
+        opener = self.get_opener()
+        
         html = self.download_html()
-        p = re.compile('<pre class="literal-block">(.+?)</pre>', re.M | re.S | re.I)
+        p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
         result = p.findall(html)
         n = len(result) / 2;
         for index in range(n):
@@ -517,23 +682,24 @@ class AtCoder(OnlineJudge):
     def submit(self):
         opener = self.get_opener()
     
-        setting = json.load(open('setting.json'))['atcoder']
         postdata = dict()
-        postdata['mail'] = setting['user_id']
-        postdata['password'] = setting['password']
-        postdata['login'] = 'login'
+        postdata['problemId'] = self.problem_id
+        postdata['languageId'] = '2'
+        postdata['source'] = open(self.get_source_file_name()).read()
+        postdata['submit'] = 'Submit'
         params = urllib.urlencode(postdata)
-        p = opener.open('http://atcoder.jp/login/', params)
-        print 'Login ... ' + str(p.getcode())
-
-        postdata = dict()
-        postdata['problem_id'] = self.problem_id
-        postdata['language_id'] = '2'
-        postdata['source_code'] = open(self.get_source_file_name()).read()
-        postdata['submit'] = 'submit'
-        params = urllib.urlencode(postdata)
-        p = opener.open('http://atcoder.jp/problem/%s/submit' % self.problem_id, params)
+        p = opener.open('http://acm.zju.edu.cn/onlinejudge/contestSubmit.do')
         print 'Submit ... ' + str(p.getcode())
+    
+    def get_language_id_from_extension(self):
+        return {'.cpp':'2',
+                '.cc':'2',
+                '.c':'1',
+                '.java':'4',
+                '.py':'5',
+                '.perl':'6',
+                '.php':'8',}
+
 
 def main():
     parser = OptionParser()
@@ -572,7 +738,10 @@ def main():
                       help="Imo Judge")
     parser.add_option("--atcoder", action="store_true",
                       dest="atcoder", default=False,
-                      help="@coder")
+                      help="AtCoder")
+    parser.add_option("--zojcontest", action="store_true",
+                      dest="zoj_contest", default=False,
+                      help="ZOJ Contest")
     
     # misc
     parser.add_option("-t", "--titech-pubnet", action="store_true",
@@ -593,7 +762,9 @@ def main():
         return
     
     online_judge = None
-    if options.atcoder:
+    if options.zoj_contest:
+        online_judge = ZOJContest(options, args)
+    elif options.atcoder:
         online_judge = AtCoder(options, args)
     elif options.imojudge:
         online_judge = ImoJudge(options, args)
