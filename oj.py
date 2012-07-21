@@ -593,32 +593,37 @@ class AtCoder(OnlineJudge):
             postdata['password'] = setting['password']
             postdata['submit'] = 'login'
             params = urllib.urlencode(postdata)
-            p = opener.open('http://arc001.contest.atcoder.jp/login', params)
+            p = opener.open('http://arc%03d.contest.atcoder.jp/login' % self.contest_id, params)
             print 'Login ... ' + str(p.getcode())
         return self.opener
 
     def download(self):
         html = self.download_html()
-        p = re.compile('<pre class="prettyprint linenums">(.+?)</pre>', re.M | re.S | re.I)
+        p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
         result = p.findall(html)
         n = len(result) / 2
         for index in range(n):
             input_file_name = self.get_input_file_name(index)
             output_file_name = self.get_output_file_name(index)
-            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
-            open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
+            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
+            open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 2]))
         return True
 
     def submit(self):
         html = self.download_html()
-        
         p = re.compile('"/submit\\?task_id=(.+?)"', re.M | re.S | re.I)
         result = p.findall(html)
         task_id = int(result[0])
+        
+        html = self.get_opener().open('http://arc%03d.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id)).read()
+        p = re.compile('name="__session" value="([0-9a-f]+?)"', re.M | re.S | re.I)
+        result = p.findall(html)
+        session = result[0]
 
         opener = self.get_opener()
     
         postdata = dict()
+        postdata['__session'] = session
         postdata['task_id'] = task_id
         postdata['language_id_%d' % task_id] = self.get_language_id()
         postdata['source_code'] = open(self.get_source_file_name()).read()
