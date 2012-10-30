@@ -515,7 +515,12 @@ class AOJ(OnlineJudge):
         return {'.cpp':'C++',
                 '.cc':'C++',
                 '.c':'C',
-                '.java':'JAVA',}
+                '.java':'JAVA',
+                '.cs':'C#',
+                '.d':'D',
+                '.rb':'Ruby',
+                '.py':'Python',
+                '.php':'PHP',}
 
 
 class CodeChef(OnlineJudge):
