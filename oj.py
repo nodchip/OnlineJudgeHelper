@@ -221,7 +221,7 @@ class OnlineJudge:
         return self.opener
 
     def get_solution(self):
-        source_file_name = self.get_source_file_name().lower()
+        source_file_name = self.get_source_file_name()
         if source_file_name.endswith('.c'):
             return SolutionC(source_file_name)
         elif source_file_name.endswith('.cpp') or source_file_name.endswith('.cc'):
