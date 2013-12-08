@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 from optparse import OptionParser
 import cookielib
 import json
@@ -19,8 +20,8 @@ class Validator:
 class DiffValidator(Validator):
     def validate(self, answer_path, output_path):
         return subprocess.call(['diff', answer_path, output_path, '-y', '--strip-trailing-cr', '-W', '79', '-a', '-d']) == 0
-    
-    
+
+
 class FloatingPointValidator(Validator):
     absolute_error = None
     def __init__(self, absolute_error):
@@ -34,25 +35,25 @@ class FloatingPointValidator(Validator):
         while True:
             answer_line = answer_file.readline()
             output_line = output_file.readline()
-            
+
             if answer_line == '' and output_line == '':
                 break
-            
+
             answer_line = answer_line.strip()
             output_line = output_line.strip()
-            
+
             answer_value = float(answer_line)
             output_value = float(output_line)
             ok = False
             diff = output_value - answer_value
-            
+
             if abs(diff) < self.absolute_error:
                 ok = True
 
 #            if abs(answer_value) > absolute_error:
 #                if abs((answer_value - output_value) / answer_value) < relative_error:
 #                    ok = True
-            
+
             separator = ' '
 
             if not ok:
@@ -95,7 +96,7 @@ class SolutionCxx(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
-        return subprocess.call(['g++', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', self.source_file_name]) == 0
+        return subprocess.call(['g++', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', '-std=c++11', self.source_file_name]) == 0
     def get_execute_command_line(self):
         return ['./a.exe']
 
@@ -173,16 +174,16 @@ class OnlineJudge:
         else:
             self.proxies = None
         self.opener = None
-    
+
     def get_url(self):
         raise NotImplementedError
-    
+
     def get_input_file_name(self, index):
         return self.problem_id + '.' + str(index) + '.in.txt'
-    
+
     def get_output_file_name(self, index):
         return self.problem_id + '.' + str(index) + '.out.txt'
-    
+
     def get_source_file_name(self):
         if self.options.source_file_name:
             return self.options.source_file_name
@@ -202,14 +203,14 @@ class OnlineJudge:
         while s.startswith('\n'):
             s = s[1:]
         return s
-    
+
     def download_html(self):
         url = self.get_url()
         return self.get_opener().open(url).read()
-    
+
     def download(self):
         raise NotImplementedError
-    
+
     def get_opener(self):
         if self.opener == None:
             cj = cookielib.CookieJar()
@@ -221,28 +222,29 @@ class OnlineJudge:
         return self.opener
 
     def get_solution(self):
-        source_file_name = self.get_source_file_name().lower()
-        if source_file_name.endswith('.c'):
+        source_file_name = self.get_source_file_name()
+        ext = os.path.splitext(source_file_name)[1]
+        if ext == '.c':
             return SolutionC(source_file_name)
-        elif source_file_name.endswith('.cpp') or source_file_name.endswith('.cc'):
+        elif ext == '.cpp' or ext == '.cc':
             return SolutionCxx(source_file_name)
-        elif source_file_name.endswith('.java'):
+        elif ext == '.java':
             return SolutionJava(source_file_name)
-        elif source_file_name.endswith('.io'):
+        elif ext == '.io':
             return SolutionIo(source_file_name)
-        elif source_file_name.endswith('.php'):
+        elif ext == '.php':
             return SolutionPhp(source_file_name)
-        elif source_file_name.endswith('.py'):
+        elif ext == '.py':
             return SolutionPython(source_file_name)
-        elif source_file_name.endswith('.pl'):
+        elif ext == '.pl':
             return SolutionPerl(source_file_name)
-        elif source_file_name.endswith('.rb'):
+        elif ext == '.rb':
             return SolutionRuby(source_file_name)
-        elif source_file_name.endswith('.hs'):
+        elif ext == '.hs':
             return SolutionHaskell(source_file_name)
         else:
             return Solution(source_file_name)
-    
+
     def get_validator(self):
         if not self.options.floating_point:
             return DiffValidator()
@@ -253,17 +255,17 @@ class OnlineJudge:
         print 'compiling...'
 
         solution = self.get_solution()
-        
+
         if not solution.compile():
             print 'CompileError'
             exit(-1)
-        
+
         if not os.path.exists(self.get_input_file_name(0)) or not os.path.exists(self.get_output_file_name(0)):
             print 'downloading...'
             self.download()
-        
+
         max_time = 0.0
-        
+
         validator = self.get_validator()
 
         ok = True
@@ -272,31 +274,31 @@ class OnlineJudge:
         for index in range(100):
             input_file_path = self.get_input_file_name(index)
             output_file_path = self.get_output_file_name(index)
-        
+
             if not os.path.exists(input_file_path):
                 break
 
             no_input_files = False
 
             print 'Case #' + str(index) + ':'
-                        
+
             execution_time = solution.execute(input_file_path, 'out.txt')
 
             if max_time < execution_time:
                 max_time = execution_time
-    
+
             if os.path.exists(output_file_path):
                 ok = validator.validate(output_file_path, 'out.txt') and ok
             else:
                 subprocess.Popen(['cat', 'out.txt']).wait()
-            
+
         if no_input_files:
             print 'No input files...'
         elif ok:
             print 'OK (max ' + str(max_time) + "s)"
         else:
             print 'WrongAnswer (max ' + str(max_time) + "s)"
-    
+
     def add_test_case_template(self):
         for index in range(100):
             input_filepath = self.get_input_file_name(index)
@@ -310,7 +312,7 @@ class OnlineJudge:
 
     def submit(self):
         raise NotImplementedError
-    
+
     def create_solution_template_file(self):
         try:
             src = self.get_source_file_name()
@@ -331,15 +333,15 @@ class OnlineJudge:
         source_file_name = self.get_source_file_name()
         root, ext = os.path.splitext(source_file_name)
         return self.get_language_id_from_extension()[ext.lower()]
-    
+
     def get_language_id_from_extension(self):
         raise NotImplementedError
-        
+
 
 class POJ(OnlineJudge):
     def __init__(self, options, args):
         OnlineJudge.__init__(self, options, args[0])
-    
+
     def get_url(self):
         return 'http://acm.pku.edu.cn/JudgeOnline/problem?id=' + self.problem_id
 
@@ -357,7 +359,7 @@ class POJ(OnlineJudge):
 
     def submit(self):
         opener = self.get_opener()
-    
+
         setting = json.load(open('setting.json'))['poj']
         postdata = dict()
         postdata['user_id1'] = setting['user_id']
@@ -365,7 +367,7 @@ class POJ(OnlineJudge):
         params = urllib.urlencode(postdata)
         p = opener.open('http://poj.org/login', params)
         print 'Login ... ' + str(p.getcode())
-        
+
         postdata = dict()
         postdata['language'] = self.get_language_id()
         postdata['problem_id'] = self.problem_id
@@ -374,10 +376,10 @@ class POJ(OnlineJudge):
         params = urllib.urlencode(postdata)
         p = opener.open('http://poj.org/submit', params)
         print 'Submit ... ' + str(p.getcode())
-        
+
         time.sleep(2.0)
         subprocess.call([setting['browser'], 'http://poj.org/status?problem_id=&user_id=' + setting['user_id'] + '&result=&language='])
-    
+
     def get_language_id_from_extension(self):
         return {'.cpp':'4',
                 '.cc':'4',
@@ -390,13 +392,13 @@ class CodeForces(OnlineJudge):
     def __init__(self, options, args):
         OnlineJudge.__init__(self, options, args[1])
         self.contest_id = args[0]
-        
+
     def get_input_file_name(self, index):
         return self.contest_id + self.problem_id + '.' + str(index) + '.in.txt'
-    
+
     def get_output_file_name(self, index):
         return self.contest_id + self.problem_id + '.' + str(index) + '.out.txt'
-    
+
     def get_url(self):
         return 'http://codeforces.com/contest/' + self.contest_id + '/problem/' + self.problem_id
 
@@ -416,13 +418,13 @@ class CodeForces(OnlineJudge):
 class MJudge(OnlineJudge):
     def __init__(self, options, args):
         OnlineJudge.__init__(self, options, args[0])
-    
+
     def get_url(self):
         return 'http://m-judge.maximum.vc/problem.cgi?pid=' + self.problem_id
 
     def download_html(self):
         opener = self.get_opener()
-    
+
         setting = json.load(open('setting.json'))['m_judge']
         postdata = dict()
         postdata['user'] = setting['user_id']
@@ -450,7 +452,7 @@ class MJudge(OnlineJudge):
 
     def submit(self):
         opener = self.get_opener()
-    
+
         setting = json.load(open('setting.json'))['m_judge']
         postdata = dict()
         postdata['user'] = setting['user_id']
@@ -467,14 +469,14 @@ class MJudge(OnlineJudge):
         params = urllib.urlencode(postdata)
         p = opener.open('http://m-judge.maximum.vc/submit.cgi', params)
         print 'Submit ... ' + str(p.getcode())
-    
-        subprocess.call([setting['browser'], 'http://m-judge.maximum.vc/result.cgi'])    
+
+        subprocess.call([setting['browser'], 'http://m-judge.maximum.vc/result.cgi'])
 
 
 class AOJ(OnlineJudge):
     def __init__(self, options, args):
         OnlineJudge.__init__(self, options, args[0])
-    
+
     def get_url(self):
         return 'http://rose.u-aizu.ac.jp/onlinejudge/ProblemSet/description.jsp?id=' + self.problem_id
 
@@ -494,11 +496,11 @@ class AOJ(OnlineJudge):
 
     def submit(self):
         opener = self.get_opener()
-    
+
         setting = json.load(open('setting.json'))['aoj']
-        
+
         postdata = dict()
-        postdata['userID'] = setting['user_id'] 
+        postdata['userID'] = setting['user_id']
         postdata['password'] = setting['password']
         postdata['problemNO'] = self.problem_id
         postdata['language'] = self.get_language_id()
@@ -507,10 +509,10 @@ class AOJ(OnlineJudge):
         params = urllib.urlencode(postdata)
         p = opener.open('http://rose.u-aizu.ac.jp/onlinejudge/servlet/Submit', params)
         print 'Submit ... ' + str(p.getcode())
-    
+
         time.sleep(2.0)
         subprocess.call([setting['browser'], 'http://rose.u-aizu.ac.jp/onlinejudge/Status.jsp'])
-    
+
     def get_language_id_from_extension(self):
         return {'.cpp':'C++',
                 '.cc':'C++',
@@ -523,13 +525,13 @@ class CodeChef(OnlineJudge):
     def __init__(self, options, args):
         OnlineJudge.__init__(self, options, args[1])
         self.contest_id = args[0]
-        
+
     def get_input_file_name(self, index):
         return self.contest_id + '.' + self.problem_id + '.' + str(index) + '.in.txt'
-    
+
     def get_output_file_name(self, index):
         return self.contest_id + '.' + self.problem_id + '.' + str(index) + '.out.txt'
-    
+
     def get_url(self):
         return 'http://www.codechef.com/' + self.contest_id + '/problems/' + self.problem_id
 
@@ -551,13 +553,13 @@ class ImoJudge(OnlineJudge):
     def __init__(self, options, args):
         OnlineJudge.__init__(self, options, args[1])
         self.contest_id = args[0]
-        
+
     def get_input_file_name(self, index):
         return self.contest_id + '.' + self.problem_id + '.' + str(index) + '.in.txt'
-    
+
     def get_output_file_name(self, index):
         return self.contest_id + '.' + self.problem_id + '.' + str(index) + '.out.txt'
-    
+
     def get_url(self):
         return 'http://judge.imoz.jp/page.php?page=view_problem&pid=%s&cid=%s' % (self.problem_id, self.contest_id)
 
@@ -578,35 +580,39 @@ class AtCoder(OnlineJudge):
     contest_id = None
     def __init__(self, options, args):
         OnlineJudge.__init__(self, options, args[1])
-        self.contest_id = int(args[0])
-        
+        self.contest_id = args[0]
+
     def get_url(self):
-        return "http://arc%03d.contest.atcoder.jp/tasks/arc%03d_%d" % (self.contest_id, self.contest_id, int(self.problem_id))
-    
+        return "http://%s.contest.atcoder.jp/tasks/%s" % (self.contest_id, self.problem_id)
+
     def get_opener(self):
         if self.opener == None:
             opener = OnlineJudge.get_opener(self)
-            
+
             setting = json.load(open('setting.json'))['atcoder']
             postdata = dict()
             postdata['name'] = setting['user_id']
             postdata['password'] = setting['password']
             postdata['submit'] = 'login'
             params = urllib.urlencode(postdata)
-            p = opener.open('http://arc%03d.contest.atcoder.jp/login' % self.contest_id, params)
+            p = opener.open('http://%s.contest.atcoder.jp/login' % self.contest_id, params)
             print 'Login ... ' + str(p.getcode())
         return self.opener
 
     def download(self):
         html = self.download_html()
-        p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
+        if '入力例' in html:
+            html = html[html.find('入力例'):]
+        if 'Sample Input' in html:
+            html = html[html.find('Sample Input'):]
+        p = re.compile('<pre.*?>(.+?)</pre>', re.M | re.S | re.I)
         result = p.findall(html)
         n = len(result) / 2
         for index in range(n):
             input_file_name = self.get_input_file_name(index)
             output_file_name = self.get_output_file_name(index)
-            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
-            open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 2]))
+            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
+            open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
 
     def submit(self):
@@ -614,14 +620,14 @@ class AtCoder(OnlineJudge):
         p = re.compile('"/submit\\?task_id=(.+?)"', re.M | re.S | re.I)
         result = p.findall(html)
         task_id = int(result[0])
-        
-        html = self.get_opener().open('http://arc%03d.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id)).read()
+
+        html = self.get_opener().open('http://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id)).read()
         p = re.compile('name="__session" value="([0-9a-f]+?)"', re.M | re.S | re.I)
         result = p.findall(html)
         session = result[0]
 
         opener = self.get_opener()
-    
+
         postdata = dict()
         postdata['__session'] = session
         postdata['task_id'] = task_id
@@ -629,13 +635,13 @@ class AtCoder(OnlineJudge):
         postdata['source_code'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'submit'
         params = urllib.urlencode(postdata)
-        p = opener.open('http://arc%03d.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
+        p = opener.open('http://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
         print 'Submit ... ' + str(p.getcode())
-        
+
         time.sleep(2.0)
         setting = json.load(open('setting.json'))['atcoder']
-        subprocess.call([setting['browser'], 'http://arc%03d.contest.atcoder.jp/submissions/me' % self.contest_id])    
-    
+        subprocess.call([setting['browser'], 'http://%s.contest.atcoder.jp/submissions/me' % self.contest_id])
+
     def get_language_id_from_extension(self):
         return {'.cpp':'2',
                 '.cc':'2',
@@ -651,14 +657,14 @@ class AtCoder(OnlineJudge):
 class ZOJContest(OnlineJudge):
     def __init__(self, options, args):
         OnlineJudge.__init__(self, options, args[0])
-        
+
     def get_url(self):
         return 'http://acm.zju.edu.cn/onlinejudge/showContestProblem.do?problemId=%s' % self.problem_id
 
     def get_opener(self):
         if self.opener == None:
             opener = OnlineJudge.get_opener(self)
-            
+
             setting = json.load(open('setting.json'))['zoj']
             postdata = dict()
             postdata['handle'] = setting['user_id']
@@ -672,7 +678,7 @@ class ZOJContest(OnlineJudge):
 
     def download(self):
         opener = self.get_opener()
-        
+
         html = self.download_html()
         p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
         result = p.findall(html)
@@ -686,7 +692,7 @@ class ZOJContest(OnlineJudge):
 
     def submit(self):
         opener = self.get_opener()
-    
+
         postdata = dict()
         postdata['problemId'] = self.problem_id
         postdata['languageId'] = '2'
@@ -695,7 +701,7 @@ class ZOJContest(OnlineJudge):
         params = urllib.urlencode(postdata)
         p = opener.open('http://acm.zju.edu.cn/onlinejudge/contestSubmit.do')
         print 'Submit ... ' + str(p.getcode())
-    
+
     def get_language_id_from_extension(self):
         return {'.cpp':'2',
                 '.cc':'2',
@@ -704,6 +710,65 @@ class ZOJContest(OnlineJudge):
                 '.py':'5',
                 '.perl':'6',
                 '.php':'8',}
+
+
+class NPCA(OnlineJudge):
+    def __init__(self, options, args):
+        OnlineJudge.__init__(self, options, args[0])
+
+    def get_url(self):
+        return 'http://judge.npca.jp/problems/view/%s' % self.problem_id
+
+    def get_opener(self):
+        if self.opener == None:
+            opener = OnlineJudge.get_opener(self)
+
+            setting = json.load(open('setting.json'))['npca']
+            postdata = dict()
+            postdata['_method'] = 'POST'
+            postdata['data[User][username]'] = setting['user_id']
+            postdata['data[User][password]'] = setting['password']
+            postdata['data[User][active]'] = '1'
+            postdata['submit'] = 'Login'
+            params = urllib.urlencode(postdata)
+            p = opener.open('http://judge.npca.jp/users/login', params)
+            print 'Login ... ' + str(p.getcode())
+        return self.opener
+
+    def download(self):
+        opener = self.get_opener()
+
+        html = self.download_html()
+        p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
+        result = p.findall(html)
+        n = len(result) / 2;
+        for index in range(n):
+            input_file_name = self.get_input_file_name(index)
+            output_file_name = self.get_output_file_name(index)
+            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
+            open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
+        return True
+
+    def submit(self):
+        opener = self.get_opener()
+
+        postdata = dict()
+        postdata['_method'] = 'POST'
+        postdata['data[Submission][language_id]'] = self.get_language_id()
+        postdata['data[Submission][source]'] = open(self.get_source_file_name()).read()
+        postdata['submit'] = 'Submit'
+        params = urllib.urlencode(postdata)
+        p = opener.open('http://judge.npca.jp/submissions/submit/%s/' % self.problem_id)
+        print 'Submit ... ' + str(p.getcode())
+
+    def get_language_id_from_extension(self):
+        return {'.cpp':'2',
+                '.cc':'2',
+                '.c':'1',
+                '.java':'7',
+                '.py':'11',
+                '.perl':'9',
+                '.php':'10'}
 
 
 def main():
@@ -747,7 +812,10 @@ def main():
     parser.add_option("--zojcontest", action="store_true",
                       dest="zoj_contest", default=False,
                       help="ZOJ Contest")
-    
+    parser.add_option("--npca", action="store_true",
+                      dest="npca", default=False,
+                      help="NPCA (Nada Personal Computer users' Association) Judge")
+
     # misc
     parser.add_option("-t", "--titech-pubnet", action="store_true",
                       dest="titech_pubnet", default=False,
@@ -760,12 +828,12 @@ def main():
                       help="Only download the test cases")
 
     (options, args) = parser.parse_args()
-    
+
     if len(args) == 0:
         print "Select problem id."
         parser.print_help()
         return
-    
+
     online_judge = None
     if options.zoj_contest:
         online_judge = ZOJContest(options, args)
@@ -781,13 +849,15 @@ def main():
         online_judge = MJudge(options, args)
     elif options.aoj:
         online_judge = AOJ(options, args)
+    elif options.npca:
+        online_judge = NPCA(options, args)
     elif options.poj:
         online_judge = POJ(options, args)
     else:
         print 'Select an online judge!!!'
         parser.print_help()
         return
-    
+
     if options.add_test_case:
         online_judge.add_test_case_template()
     elif options.submit:
@@ -798,7 +868,7 @@ def main():
         online_judge.download()
     else:
         online_judge.check()
-    
+
 if __name__ == '__main__':
     main()
 
