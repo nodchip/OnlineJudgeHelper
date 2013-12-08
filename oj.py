@@ -280,7 +280,7 @@ class OnlineJudge:
 
             no_input_files = False
 
-            print 'Case #' + str(index) + ':'
+            print '----- Case #%d -----' % index
 
             execution_time = solution.execute(input_file_path, 'out.txt')
 
