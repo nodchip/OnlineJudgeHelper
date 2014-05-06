@@ -96,7 +96,7 @@ class SolutionCxx(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
-        return subprocess.call(['g++', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', '-std=c++11', self.source_file_name]) == 0
+        return subprocess.call(['g++', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', '-std=c++11', '-Wl,-stack,10485760', self.source_file_name]) == 0
     def get_execute_command_line(self):
         return ['./a.exe']
 
@@ -643,8 +643,8 @@ class AtCoder(OnlineJudge):
         subprocess.call([setting['browser'], 'http://%s.contest.atcoder.jp/submissions/me' % self.contest_id])
 
     def get_language_id_from_extension(self):
-        return {'.cpp':'2',
-                '.cc':'2',
+        return {'.cpp':'10',
+                '.cc':'10',
                 '.c':'1',
                 '.java':'3',
                 '.php':'5',
@@ -771,6 +771,69 @@ class NPCA(OnlineJudge):
                 '.php':'10'}
 
 
+class KCS(OnlineJudge):
+    contest_id = None
+    def __init__(self, options, args):
+        OnlineJudge.__init__(self, options, args[1])
+        self.contest_id = args[0]
+
+    def get_url(self):
+        return "http://kcs.miz-miz.biz/contest/%s/view_problem/%s" % (self.contest_id, self.problem_id)
+
+    def get_opener(self):
+        if self.opener == None:
+            opener = OnlineJudge.get_opener(self)
+
+            setting = json.load(open('setting.json'))['kcs']
+            postdata = dict()
+            postdata['user_id'] = setting['user_id']
+            postdata['password'] = setting['password']
+            postdata['submit'] = '送信'
+            params = urllib.urlencode(postdata)
+            p = opener.open('http://kcs.miz-miz.biz/login', params)
+            print 'Login ... ' + str(p.getcode())
+            print p.read()
+        return self.opener
+
+    def download(self):
+        html = self.download_html()
+        if '入出力例' in html:
+            html = html[html.find('入出力例'):]
+        p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
+        result = p.findall(html)
+        n = len(result) / 2
+        for index in range(n):
+            input_file_name = self.get_input_file_name(index)
+            output_file_name = self.get_output_file_name(index)
+            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
+            open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
+        return True
+
+    def submit(self):
+        opener = self.get_opener()
+
+        postdata = dict()
+        postdata['language'] = self.get_language_id()
+        postdata['code'] = open(self.get_source_file_name()).read()
+        postdata['submit'] = 'submit'
+        params = urllib.urlencode(postdata)
+        p = opener.open('http://kcs.miz-miz.biz/contest/%s/submit_problem/%s' % (self.contest_id, self.problem_id), params)
+        print 'Submit ... ' + str(p.getcode())
+
+        time.sleep(2.0)
+        setting = json.load(open('setting.json'))['kcs']
+        subprocess.call([setting['browser'], 'http://kcs.miz-miz.biz/contest/%s/submission_list/page=1' % self.contest_id])
+
+    def get_language_id_from_extension(self):
+        return {'.c':'C',
+                '.cc':'C++11',
+                '.cpp':'C++11',
+                '.cs':'C#',
+                '.py':'Python',
+                '.rb':'Ruby',
+                '.java':'Java'}
+
+
 def main():
     parser = OptionParser()
     # function
@@ -815,6 +878,9 @@ def main():
     parser.add_option("--npca", action="store_true",
                       dest="npca", default=False,
                       help="NPCA (Nada Personal Computer users' Association) Judge")
+    parser.add_option("--kcs", action="store_true",
+                      dest="kcs", default=False,
+                      help="KCS (Kagamiz Contest System)")
 
     # misc
     parser.add_option("-t", "--titech-pubnet", action="store_true",
@@ -851,6 +917,8 @@ def main():
         online_judge = AOJ(options, args)
     elif options.npca:
         online_judge = NPCA(options, args)
+    elif options.kcs:
+        online_judge = KCS(options, args)
     elif options.poj:
         online_judge = POJ(options, args)
     else:
