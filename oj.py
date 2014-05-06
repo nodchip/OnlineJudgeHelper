@@ -478,7 +478,7 @@ class AOJ(OnlineJudge):
         OnlineJudge.__init__(self, options, args[0])
 
     def get_url(self):
-        return 'http://rose.u-aizu.ac.jp/onlinejudge/ProblemSet/description.jsp?id=' + self.problem_id
+        return 'http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=' + self.problem_id
 
     def download(self):
         html = self.download_html()
@@ -507,17 +507,22 @@ class AOJ(OnlineJudge):
         postdata['sourceCode'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'Send'
         params = urllib.urlencode(postdata)
-        p = opener.open('http://rose.u-aizu.ac.jp/onlinejudge/servlet/Submit', params)
+        p = opener.open('http://judge.u-aizu.ac.jp/onlinejudge/servlet/Submit', params)
         print 'Submit ... ' + str(p.getcode())
 
         time.sleep(2.0)
-        subprocess.call([setting['browser'], 'http://rose.u-aizu.ac.jp/onlinejudge/Status.jsp'])
-
+        subprocess.call([setting['browser'], 'http://judge.u-aizu.ac.jp/onlinejudge/status.jsp'])
+    
     def get_language_id_from_extension(self):
         return {'.cpp':'C++',
                 '.cc':'C++',
                 '.c':'C',
-                '.java':'JAVA',}
+                '.java':'JAVA',
+                '.cs':'C#',
+                '.d':'D',
+                '.rb':'Ruby',
+                '.py':'Python',
+                '.php':'PHP',}
 
 
 class CodeChef(OnlineJudge):
