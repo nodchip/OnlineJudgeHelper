@@ -797,7 +797,6 @@ class KCS(OnlineJudge):
             params = urllib.urlencode(postdata)
             p = opener.open('http://kcs.miz-miz.biz/login', params)
             print 'Login ... ' + str(p.getcode())
-            print p.read()
         return self.opener
 
     def download(self):
@@ -837,6 +836,28 @@ class KCS(OnlineJudge):
                 '.py':'Python',
                 '.rb':'Ruby',
                 '.java':'Java'}
+
+
+class yukicoder(OnlineJudge):
+    def __init__(self, options, args):
+        OnlineJudge.__init__(self, options, args[0])
+
+    def get_url(self):
+        return "http://yukicoder.me/problems/%s" % self.problem_id
+
+    def download(self):
+        html = self.download_html()
+        if 'サンプル' in html:
+            html = html[html.find('サンプル'):]
+        p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
+        result = p.findall(html)
+        n = len(result) / 2
+        for index in range(n):
+            input_file_name = self.get_input_file_name(index)
+            output_file_name = self.get_output_file_name(index)
+            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
+            open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
+        return True
 
 
 def main():
@@ -886,6 +907,9 @@ def main():
     parser.add_option("--kcs", action="store_true",
                       dest="kcs", default=False,
                       help="KCS (Kagamiz Contest System)")
+    parser.add_option("--yukicoder", action="store_true",
+                      dest="yukicoder", default=False,
+                      help="yukicoder")
 
     # misc
     parser.add_option("-t", "--titech-pubnet", action="store_true",
@@ -924,6 +948,8 @@ def main():
         online_judge = NPCA(options, args)
     elif options.kcs:
         online_judge = KCS(options, args)
+    elif options.yukicoder:
+        online_judge = yukicoder(options, args)
     elif options.poj:
         online_judge = POJ(options, args)
     else:
