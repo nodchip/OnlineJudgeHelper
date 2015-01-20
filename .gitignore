@@ -4,3 +4,4 @@ setting.json
 *.zip
 *.class
 *.exe
+yukicoder_test.*/

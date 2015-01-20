@@ -11,6 +11,7 @@ import subprocess
 import time
 import urllib
 import urllib2
+import zipfile
 
 class Validator:
     def validate(self, answer_path, output_path):
@@ -907,6 +908,47 @@ class yukicoder(OnlineJudge):
         else:
             return '../yukicoder' + self.problem_id + '.rb'
 
+class yukicoder_test(OnlineJudge):
+    def __init__(self, options, args):
+        OnlineJudge.__init__(self, options, args[0])
+        self.testcase_names=[""]
+        testfoldername = self.__class__.__name__ + '.' + self.problem_id + "/test_in"
+        if os.path.exists(testfoldername):
+            self.testcase_names = os.listdir(testfoldername)
+
+    def get_input_file_name(self, index):
+        if len(self.testcase_names) <= index:
+            return "----invalid name" # とりあえずなさそうな名前を返す
+        print(self.testcase_names[index])
+        return self.__class__.__name__ + '.' + self.problem_id + '/test_in/' + self.testcase_names[index]
+
+    def get_output_file_name(self, index):
+        if len(self.testcase_names) <= index:
+            return "----invalid name" # とりあえずなさそうな名前を返す
+        return self.__class__.__name__ + '.' + self.problem_id + '/test_out/' + self.testcase_names[index]
+
+    def get_url(self):
+        return "http://yukicoder.me/problems/no/%s/testcase.zip" % self.problem_id
+
+    def download(self):
+        try:
+            zipf = self.get_opener().open(self.get_url())
+            zipname = self.__class__.__name__ + '.' + self.problem_id + ".zip"
+            open(zipname, "w").write(zipf.read())
+            with zipfile.ZipFile(zipname) as z:
+                self.testcase_names = [os.path.basename(i) for i in z.namelist() if i[0:7]=="test_in"]
+                z.extractall(self.__class__.__name__ + '.' + self.problem_id)
+            return True
+        except urllib2.HTTPError as error:
+            print(error)
+            return False
+
+    def get_source_file_name(self):
+        if self.options.source_file_name:
+            return self.options.source_file_name
+        else:
+            return '../yukicoder' + self.problem_id + '.rb'
+
 
 def main():
     usage = "usage: %prog [options] ... [contest_id] problem_id"
@@ -958,7 +1000,10 @@ def main():
                       help="KCS (Kagamiz Contest System)")
     parser.add_option("--yukicoder", action="store_true",
                       dest="yukicoder", default=False,
-                      help="yukicoder")
+                      help="yukicoder sample case")
+    parser.add_option("--yukicoder_test", action="store_true",
+                      dest="yukicoder_test", default=False,
+                      help="yukicoder all test case")
 
     # misc
     parser.add_option("-t", "--titech-pubnet", action="store_true",
@@ -1011,6 +1056,8 @@ def main():
         online_judge = KCS(options, args)
     elif options.yukicoder:
         online_judge = yukicoder(options, args)
+    elif options.yukicoder_test:
+        online_judge = yukicoder_test(options, args)
     elif options.poj:
         online_judge = POJ(options, args)
     else:
