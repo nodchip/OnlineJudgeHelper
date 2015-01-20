@@ -843,12 +843,12 @@ class yukicoder(OnlineJudge):
         OnlineJudge.__init__(self, options, args[0])
 
     def get_url(self):
-        return "http://yukicoder.me/problems/%s" % self.problem_id
+        return "http://yukicoder.me/problems/no/%s" % self.problem_id
 
     def download(self):
         html = self.download_html()
-        if 'サンプル' in html:
-            html = html[html.find('サンプル'):]
+        if 'class="sample"' in html:
+            html = html[html.find('class="sample"'):]
         p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
         result = p.findall(html)
         n = len(result) / 2
