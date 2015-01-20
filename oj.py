@@ -137,6 +137,22 @@ class SolutionPython(Solution):
     def get_execute_command_line(self):
         return ['python', self.source_file_name]
 
+class SolutionPyPy(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_command_line(self):
+        return ['/cygdrive/c/python/pypy-2.4.0-win32/pypy', self.source_file_name]
+
+class SolutionPython3(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_command_line(self):
+        return ['/cygdrive/c/python/Python34/python', self.source_file_name]
+
 
 class SolutionPerl(Solution):
     def __init__(self, source_file_name):
@@ -153,7 +169,15 @@ class SolutionRuby(Solution):
     def compile(self):
         return True
     def get_execute_command_line(self):
-        return ['ruby', self.source_file_name]
+        return ['/cygdrive/c/ruby/ruby-2.1.5-x64-mingw32/bin/ruby', self.source_file_name]
+
+class SolutionRuby19(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_command_line(self):
+        return ['/cygdrive/c/ruby/ruby-1.9.3-p551-i386-mingw32/bin/ruby', self.source_file_name]
 
 
 class SolutionHaskell(Solution):
@@ -163,6 +187,14 @@ class SolutionHaskell(Solution):
         return subprocess.call(['ghc', '-o', 'a.exe', self.source_file_name]) == 0
     def get_execute_command_line(self):
         return ['./a.exe']
+
+class SolutionScala(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return subprocess.call(['scalac', self.source_file_name]) == 0
+    def get_execute_command_line(self):
+        return ['scala',"-J-Xmx1024m","Main"]
 
 
 class OnlineJudge:
@@ -235,13 +267,23 @@ class OnlineJudge:
         elif ext == '.php':
             return SolutionPhp(source_file_name)
         elif ext == '.py':
-            return SolutionPython(source_file_name)
+            if self.options.py3:
+                return SolutionPython3(source_file_name)
+            elif self.options.pypy:
+                return SolutionPyPy(source_file_name)
+            else:
+                return SolutionPython(source_file_name)
         elif ext == '.pl':
             return SolutionPerl(source_file_name)
         elif ext == '.rb':
-            return SolutionRuby(source_file_name)
+            if self.options.r19:
+                return SolutionRuby19(source_file_name)
+            else:
+                return SolutionRuby(source_file_name)
         elif ext == '.hs':
             return SolutionHaskell(source_file_name)
+        elif ext == '.scala':
+            return SolutionScala(source_file_name)
         else:
             return Solution(source_file_name)
 
@@ -922,6 +964,18 @@ def main():
     parser.add_option('-d', '--download', action="store_true",
                       dest='download', default=False,
                       help="Only download the test cases")
+
+    parser.add_option('--r19', action="store_true",
+                      dest='r19', default=False,
+                      help="use Ruby1.9 for test")
+
+    parser.add_option('--py3', action="store_true",
+                      dest='py3', default=False,
+                      help="use Python3 for test")
+
+    parser.add_option('--pypy', action="store_true",
+                      dest='pypy', default=False,
+                      help="use PyPy for test")
 
     (options, args) = parser.parse_args()
 
