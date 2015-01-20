@@ -901,6 +901,12 @@ class yukicoder(OnlineJudge):
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
 
+    def get_source_file_name(self):
+        if self.options.source_file_name:
+            return self.options.source_file_name
+        else:
+            return '../yukicoder' + self.problem_id + '.rb'
+
 
 def main():
     usage = "usage: %prog [options] ... [contest_id] problem_id"
