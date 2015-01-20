@@ -211,10 +211,10 @@ class OnlineJudge:
         raise NotImplementedError
 
     def get_input_file_name(self, index):
-        return self.problem_id + '.' + str(index) + '.in.txt'
+        return self.__class__.__name__ + '.' + self.problem_id + '.' + str(index) + '.in.txt'
 
     def get_output_file_name(self, index):
-        return self.problem_id + '.' + str(index) + '.out.txt'
+        return self.__class__.__name__ + '.' + self.problem_id + '.' + str(index) + '.out.txt'
 
     def get_source_file_name(self):
         if self.options.source_file_name:
