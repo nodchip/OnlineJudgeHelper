@@ -1,0 +1,6 @@
+setting.json
+*.in.txt
+*.out.txt
+*.zip
+*.class
+*.exe
