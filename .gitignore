@@ -1,4 +1,5 @@
 setting.json
+out.txt
 *.in.txt
 *.out.txt
 *.zip
