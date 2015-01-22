@@ -199,6 +199,15 @@ class SolutionScala(Solution):
     def get_execute_command_line(self):
         return ['scala',"-J-Xmx1024m","Main"]
 
+class SolutionCs(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        s=subprocess.check_output(['cygpath', '-w', self.source_file_name]).rstrip()
+        return subprocess.call(['csc', '/out:a.exe', s]) == 0
+    def get_execute_command_line(self):
+        return ['./a.exe']
+
 
 class OnlineJudge:
     def __init__(self, options, problem_id):
@@ -287,6 +296,8 @@ class OnlineJudge:
             return SolutionHaskell(source_file_name)
         elif ext == '.scala':
             return SolutionScala(source_file_name)
+        elif ext == '.cs':
+            return SolutionCs(source_file_name)
         else:
             return Solution(source_file_name)
 
