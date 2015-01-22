@@ -48,7 +48,7 @@ class FloatingPointValidator(Validator):
             output_value = float(output_line)
             ok = False
             diff = output_value - answer_value
-            reldiff = diff / output_value
+            reldiff = diff / output_value if output_value else 1e9
 
             if abs(diff) < self.absolute_error or abs(reldiff) < self.relative_error :
                 ok = True
