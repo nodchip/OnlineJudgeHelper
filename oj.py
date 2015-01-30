@@ -172,7 +172,8 @@ class SolutionRuby(Solution):
     def compile(self):
         return True
     def get_execute_command_line(self):
-        return ['/cygdrive/c/ruby/ruby-2.1.5-x64-mingw32/bin/ruby', self.source_file_name]
+#        return ['/cygdrive/c/ruby/ruby-2.1.5-x64-mingw32/bin/ruby', self.source_file_name]
+        return ['ruby', self.source_file_name]
 
 class SolutionRuby19(Solution):
     def __init__(self, source_file_name):
@@ -579,6 +580,35 @@ class AOJ(OnlineJudge):
                 '.rb':'Ruby',
                 '.py':'Python',
                 '.php':'PHP',}
+
+
+class AOJ_test(OnlineJudge):
+    def __init__(self, options, args):
+        OnlineJudge.__init__(self, options, args[0])
+
+    def get_url(self,index,inout):
+        return 'http://analytic.u-aizu.ac.jp:8080/aoj/testcase.jsp?id=' + self.problem_id + '&case=' + str(index) + '&type=' + inout
+
+    def download_html(self,index,inout):
+        url = self.get_url(index,inout)
+        return self.get_opener().open(url).read()
+
+    def download(self):
+        for index in range(100):
+            try:
+                input_data=self.download_html(index+1,"in")
+                if input_data == "In preparation.\n":
+                    print("testcase in preparation")
+                    break
+                output_data=self.download_html(index+1,"out")
+                input_file_name = self.get_input_file_name(index)
+                output_file_name = self.get_output_file_name(index)
+                open(input_file_name, 'w').write(input_data)
+                open(output_file_name, 'w').write(output_data)
+            except:
+                print("testcase notfound: index%d"%index)
+                break
+        return True
 
 
 class CodeChef(OnlineJudge):
@@ -989,6 +1019,9 @@ def main():
     parser.add_option("--aoj", action="store_true",
                       dest="aoj", default=False,
                       help="Aizu Online Judge")
+    parser.add_option("--aoj_test", action="store_true",
+                      dest="aoj_test", default=False,
+                      help="Aizu Online Judge all testcase")
     parser.add_option("--codechef", action="store_true",
                       dest="codechef", default=False,
                       help="CodeChef")
@@ -1059,6 +1092,8 @@ def main():
         online_judge = MJudge(options, args)
     elif options.aoj:
         online_judge = AOJ(options, args)
+    elif options.aoj_test:
+        online_judge = AOJ_test(options, args)
     elif options.npca:
         online_judge = NPCA(options, args)
     elif options.kcs:
