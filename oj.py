@@ -974,13 +974,17 @@ class yukicoder_test(OnlineJudge):
         return "http://yukicoder.me/problems/no/%s/testcase.zip" % self.problem_id
 
     def download(self):
-        zipf = self.get_opener().open(self.get_url())
-        zipname = self.__class__.__name__ + '.' + self.problem_id + ".zip"
-        open(zipname, "w").write(zipf.read())
-        with zipfile.ZipFile(zipname) as z:
-            self.testcase_names = [os.path.basename(i) for i in z.namelist() if i[0:7]=="test_in"]
-            z.extractall(self.__class__.__name__ + '.' + self.problem_id)
-        return True
+        try:
+            zipf = self.get_opener().open(self.get_url())
+            zipname = self.__class__.__name__ + '.' + self.problem_id + ".zip"
+            open(zipname, "w").write(zipf.read())
+            with zipfile.ZipFile(zipname) as z:
+                self.testcase_names = [os.path.basename(i) for i in z.namelist() if i[0:7]=="test_in"]
+                z.extractall(self.__class__.__name__ + '.' + self.problem_id)
+            return True
+        except urllib2.HTTPError as error:
+            print(error)
+            return False
 
     def get_source_file_name(self):
         if self.options.source_file_name:
