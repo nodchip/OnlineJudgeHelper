@@ -156,6 +156,14 @@ class SolutionPython3(Solution):
     def get_execute_command_line(self):
         return ['/cygdrive/c/python/Python34/python', self.source_file_name]
 
+class SolutionPyPy3(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_command_line(self):
+        return ['/cygdrive/c/python/pypy3-2.4.0-win32/pypy', self.source_file_name]
+
 
 class SolutionPerl(Solution):
     def __init__(self, source_file_name):
@@ -182,6 +190,14 @@ class SolutionRuby19(Solution):
         return True
     def get_execute_command_line(self):
         return ['/cygdrive/c/ruby/ruby-1.9.3-p551-i386-mingw32/bin/ruby', self.source_file_name]
+
+class SolutionRubyTopaz(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_command_line(self):
+        return ['/cygdrive/c/ruby/topaz/bin/topaz', self.source_file_name]
 
 
 class SolutionHaskell(Solution):
@@ -284,6 +300,8 @@ class OnlineJudge:
                 return SolutionPython3(source_file_name)
             elif self.options.pypy:
                 return SolutionPyPy(source_file_name)
+            elif self.options.pypy3:
+                return SolutionPyPy3(source_file_name)
             else:
                 return SolutionPython(source_file_name)
         elif ext == '.pl':
@@ -291,6 +309,8 @@ class OnlineJudge:
         elif ext == '.rb':
             if self.options.r19:
                 return SolutionRuby19(source_file_name)
+            if self.options.topaz:
+                return SolutionRubyTopaz(source_file_name)
             else:
                 return SolutionRuby(source_file_name)
         elif ext == '.hs':
@@ -1066,6 +1086,10 @@ def main():
                       dest='r19', default=False,
                       help="use Ruby1.9 for test")
 
+    parser.add_option('--topaz', action="store_true",
+                      dest='topaz', default=False,
+                      help="use Topaz for test")
+
     parser.add_option('--py3', action="store_true",
                       dest='py3', default=False,
                       help="use Python3 for test")
@@ -1073,6 +1097,10 @@ def main():
     parser.add_option('--pypy', action="store_true",
                       dest='pypy', default=False,
                       help="use PyPy for test")
+
+    parser.add_option('--pypy3', action="store_true",
+                      dest='pypy3', default=False,
+                      help="use PyPy3 for test")
 
     (options, args) = parser.parse_args()
 
