@@ -146,7 +146,7 @@ class SolutionPyPy(Solution):
     def compile(self):
         return True
     def get_execute_command_line(self):
-        return ['/cygdrive/c/python/pypy-2.4.0-win32/pypy', self.source_file_name]
+        return ['/cygdrive/c/python/pypy-2.5.0-win32/pypy', self.source_file_name]
 
 class SolutionPython3(Solution):
     def __init__(self, source_file_name):
