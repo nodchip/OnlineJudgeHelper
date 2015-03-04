@@ -25,9 +25,33 @@
 - ImoJudge (サンプル入出力データのダウンロードのみ)
 - AtCoder
 - ZOJContest
+- NPCA Judge
+- KCS
+- yukicoder (サンプル入出力データのダウンロードのみ)
 
 3. 使い方
-./oj.py [options] ... [contest_id] problem_id
+./oj.py --onlinejudgename [contest_id] problem_id [options...]
+
+例:
+ ./oj.py --atcoder arc001 arc001_1 -i atcoder-arc001-A.cpp
+ ./oj.py --yukicoder 9002 -i yukicoder9002.cpp -e 1e-4
+
+contest_id,problem_idに指定する値はオンラインジャッジ毎に異なります。
+大半は問題ページのURLの一部です。
+
+オンラインジャッジ | オプション名 | contest_id,problem_idに指定する値
+-------------------|--------------|--------------
+PKU JudgeOnline    | --poj        | http://acm.pku.edu.cn/JudgeOnline/problem?id=[ problem_id ]
+CodeForces         | --codeforces | http://codeforces.com/contest/[ contest_id ]/problem/[ problem_id ]
+MJudge             | --mjudge     | http://m-judge.maximum.vc/problem.cgi?pid=[ problem_id ]
+AOJ                | --aoj        | http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=[ problem_id ]
+CodeChef           | --codechef   | http://www.codechef.com/[ contest_id ]/problems/[ problem_id ]
+ImoJudge           | --imojudge   | http://judge.imoz.jp/page.php?page=view_problem&pid=[ problem_id ]&cid=[ contest_id ]
+AtCoder            | --atcoder    | http://[ contest_id ].contest.atcoder.jp/tasks/[ problem_id ]
+ZOJContest         | --zojcontest | http://acm.zju.edu.cn/onlinejudge/showContestProblem.do?problemId=[ problem_id ]
+NPCA Judge         | --npca       | http://judge.npca.jp/problems/view/[ problem_id ]
+KCS                | --kcs        | http://kcs.miz-miz.biz/contest/[ contest_id ]/view_problem/[ problem_id ]
+yukicoder          | --yukicoder  | problem_id=問題番号（No.xx 問題名 のxx部分）(http://yukicoder.me/problems/no/[ problem_id ])
 
 3-1. 初めて使う場合
 設定ファイルを"setting.json"という名前で作成し、
@@ -54,15 +78,6 @@ json形式で書いたものです。
   -t, --titech-pubnet   東工大内ネットワークからプロキシを使用して接続します
   -e FLOATING_POINT     許容誤差を指定して浮動小数バリデータを使用します
   -d, --download        サンプル入出力データのダウンロードのみ行います
-
-  --poj                 PKU JudgeOnline
-  --codeforces          CodeForces
-  --mjudge              M-Judge
-  --aoj                 Aizu Online Judge
-  --codechef            CodeChef
-  --imojudge            Imo Judge
-  --atcoder             @coder
-  --zojcontest          ZOJ Contest
 
 4. その他
 OnlineJudgeHelperは幾つかのブログで紹介されました。
