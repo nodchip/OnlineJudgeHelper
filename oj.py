@@ -222,8 +222,11 @@ class SolutionRubyTopaz(Solution):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['RBENV_VERSION']='topaz-dev'
     def get_execute_command_line(self):
-        return ['/cygdrive/c/ruby/topaz/bin/topaz', self.source_file_name]
+        return ['topaz', self.source_file_name]
 
 
 class SolutionHaskell(Solution):
@@ -237,8 +240,11 @@ class SolutionHaskell(Solution):
 class SolutionScala(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['SCALAENV_VERSION']='scala-2.11.5'
     def compile(self):
-        return subprocess.call(['scalac', self.source_file_name]) == 0
+        return subprocess.call(['scalac', self.source_file_name],env=self.get_execute_env()) == 0
     def get_execute_command_line(self):
         return ['scala',"-J-Xmx1024m","Main"]
 
