@@ -76,7 +76,8 @@ class Solution:
         start_time = time.time()
         p = subprocess.Popen(self.get_execute_command_line(),
                              stdin=open(input_file_path, 'r'),
-                             stdout=open(output_file_path, 'w'))
+                             stdout=open(output_file_path, 'w'),
+                             env=self.get_execute_env())
         if p.wait() != 0:
             print 'RuntimeError?'
             exit(-1)
@@ -84,6 +85,8 @@ class Solution:
         return end_time - start_time
     def get_execute_command_line(self):
         raise NotImplementedError
+    def get_execute_env(self):
+        return os.environ
 
 
 class SolutionC(Solution):
@@ -137,6 +140,10 @@ class SolutionPython(Solution):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['PYENV_VERSION']='2.7.9'
+        return env
     def get_execute_command_line(self):
         return ['python', self.source_file_name]
 
@@ -145,24 +152,36 @@ class SolutionPyPy(Solution):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['PYENV_VERSION']='pypy-2.5.0'
+        return env
     def get_execute_command_line(self):
-        return ['/cygdrive/c/python/pypy-2.5.0-win32/pypy', self.source_file_name]
+        return ['pypy', self.source_file_name]
 
 class SolutionPython3(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['PYENV_VERSION']='3.4.2'
+        return env
     def get_execute_command_line(self):
-        return ['/cygdrive/c/python/Python34/python', self.source_file_name]
+        return ['python3', self.source_file_name]
 
 class SolutionPyPy3(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['PYENV_VERSION']='pypy3-2.4.0'
+        return env
     def get_execute_command_line(self):
-        return ['/cygdrive/c/python/pypy3-2.4.0-win32/pypy', self.source_file_name]
+        return ['pypy3', self.source_file_name]
 
 
 class SolutionPerl(Solution):
@@ -179,8 +198,11 @@ class SolutionRuby(Solution):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['RBENV_VERSION']='2.2.0'
+        return env
     def get_execute_command_line(self):
-#        return ['/cygdrive/c/ruby/ruby-2.1.5-x64-mingw32/bin/ruby', self.source_file_name]
         return ['ruby', self.source_file_name]
 
 class SolutionRuby19(Solution):
@@ -188,8 +210,12 @@ class SolutionRuby19(Solution):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['RBENV_VERSION']='system'
+        return env
     def get_execute_command_line(self):
-        return ['/cygdrive/c/ruby/ruby-1.9.3-p551-i386-mingw32/bin/ruby', self.source_file_name]
+        return ['ruby', self.source_file_name]
 
 class SolutionRubyTopaz(Solution):
     def __init__(self, source_file_name):
