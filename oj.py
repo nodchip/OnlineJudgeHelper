@@ -251,6 +251,14 @@ class SolutionCs(Solution):
     def get_execute_command_line(self):
         return ['./a.exe']
 
+class SolutionGo(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return subprocess.call(['go', 'build', '-o', 'a.out', self.source_file_name]) == 0
+    def get_execute_command_line(self):
+        return ['./a.out']
+
 
 class OnlineJudge:
     def __init__(self, options, problem_id):
@@ -345,6 +353,8 @@ class OnlineJudge:
             return SolutionScala(source_file_name)
         elif ext == '.cs':
             return SolutionCs(source_file_name)
+        elif ext == '.go':
+            return SolutionGo(source_file_name)
         else:
             return Solution(source_file_name)
 
