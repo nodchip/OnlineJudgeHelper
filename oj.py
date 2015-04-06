@@ -99,7 +99,7 @@ class SolutionCxx(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
-        return subprocess.call(['g++', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', '-std=c++11', '-Wl,-stack,10485760', self.source_file_name]) == 0
+        return subprocess.call(['g++', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', '-std=c++11', self.source_file_name]) == 0
     def get_execute_command_line(self):
         return ['./a.exe']
 
