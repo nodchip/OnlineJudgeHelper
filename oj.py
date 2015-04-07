@@ -931,7 +931,7 @@ class KCS(OnlineJudge):
         self.contest_id = args[0]
 
     def get_url(self):
-        return "http://kcs.miz-miz.biz/contest/%s/view_problem/%s" % (self.contest_id, self.problem_id)
+        return "http://kcs.miz-miz.biz/contest/%s/view/%s" % (self.contest_id, self.problem_id)
 
     def get_opener(self):
         if self.opener == None:
@@ -943,7 +943,7 @@ class KCS(OnlineJudge):
             postdata['password'] = setting['password']
             postdata['submit'] = '送信'
             params = urllib.urlencode(postdata)
-            p = opener.open('http://kcs.miz-miz.biz/login', params)
+            p = opener.open('http://kcs.miz-miz.biz/user/login', params)
             print('Login ... ' + str(p.getcode()))
         return self.opener
 
@@ -969,12 +969,12 @@ class KCS(OnlineJudge):
         postdata['code'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'submit'
         params = urllib.urlencode(postdata)
-        p = opener.open('http://kcs.miz-miz.biz/contest/%s/submit_problem/%s' % (self.contest_id, self.problem_id), params)
+        p = opener.open('http://kcs.miz-miz.biz/contest/%s/submit/%s' % (self.contest_id, self.problem_id), params)
         print('Submit ... ' + str(p.getcode()))
 
         time.sleep(2.0)
         setting = json.load(open('setting.json'))['kcs']
-        subprocess.call([setting['browser'], 'http://kcs.miz-miz.biz/contest/%s/submission_list/page=1' % self.contest_id])
+        subprocess.call([setting['browser'], 'http://kcs.miz-miz.biz/contest/%s/submissions/page=1' % self.contest_id])
 
     def get_language_id_from_extension(self):
         return {'.c':'C',
