@@ -748,7 +748,7 @@ class AtCoder(OnlineJudge):
             postdata['password'] = setting['password']
             postdata['submit'] = 'login'
             params = urllib.urlencode(postdata)
-            p = opener.open('http://%s.contest.atcoder.jp/login' % self.contest_id, params)
+            p = opener.open('https://%s.contest.atcoder.jp/login' % self.contest_id, params)
             print('Login ... ' + str(p.getcode()))
         return self.opener
 
