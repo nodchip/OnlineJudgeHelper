@@ -265,6 +265,14 @@ class SolutionGo(Solution):
     def get_execute_command_line(self):
         return ['./a.out']
 
+class SolutionD(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return subprocess.call(['dmd', '-m64', '-w', '-wi', '-O', '-release', '-inline', '-ofa.out', self.source_file_name]) == 0
+    def get_execute_command_line(self):
+        return ['./a.out']
+
 
 class OnlineJudge:
     def __init__(self, options, problem_id):
@@ -361,6 +369,8 @@ class OnlineJudge:
             return SolutionCs(source_file_name)
         elif ext == '.go':
             return SolutionGo(source_file_name)
+        elif ext == '.d':
+            return SolutionD(source_file_name)
         else:
             return Solution(source_file_name)
 
