@@ -864,7 +864,8 @@ class yukicoder(OnlineJudge):
 
 
 def main():
-    parser = OptionParser()
+    usage = "usage: %prog [options] ... [contest_id] problem_id"
+    parser = OptionParser(usage=usage)
     # function
     parser.add_option("-c", "--create-solution-template-file", action="store_true",
                       dest="create_solution_template_file", default=False,
