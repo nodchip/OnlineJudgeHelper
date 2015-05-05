@@ -600,8 +600,11 @@ class AtCoder(OnlineJudge):
             postdata['password'] = setting['password']
             postdata['submit'] = 'login'
             params = urllib.urlencode(postdata)
-            p = opener.open('http://%s.contest.atcoder.jp/login' % self.contest_id, params)
+            url = 'https://%s.contest.atcoder.jp/login' % self.contest_id
+            # print url
+            p = opener.open(url, params)
             print 'Login ... ' + str(p.getcode())
+            # print p.read()
         return self.opener
 
     def download(self):
@@ -640,7 +643,7 @@ class AtCoder(OnlineJudge):
         postdata['source_code'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'submit'
         params = urllib.urlencode(postdata)
-        p = opener.open('http://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
+        p = opener.open('https://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
         print 'Submit ... ' + str(p.getcode())
 
         time.sleep(2.0)
