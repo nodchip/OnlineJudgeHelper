@@ -12,6 +12,17 @@ import urllib
 import urllib2
 import zipfile
 
+try:
+    import colorama
+    colorama.init()
+    clr = colorama.Fore
+except:
+    class clr:
+        RED   = ''
+        GREEN = ''
+        BLUE  = ''
+        RESET = ''
+
 from validator import *
 from solution import *
 
@@ -150,7 +161,7 @@ class OnlineJudge:
 
             no_input_files = False
 
-            print('----- Case #%d -----' % index)
+            print(clr.GREEN + ('----- Case #%d -----' % index) + clr.RESET)
 
             execution_time = solution.execute(input_file_path, 'out.txt')
 
@@ -158,16 +169,23 @@ class OnlineJudge:
                 max_time = execution_time
 
             if os.path.exists(output_file_path):
-                ok = validator.validate(output_file_path, 'out.txt') and ok
+                result = validator.validate(output_file_path, 'out.txt')
+                if result:
+                    print(clr.BLUE + ('ok (%f sec)' % execution_time) + clr.RESET)
+                else:
+                    print(clr.RED + ('WA (%f sec)' % execution_time) + clr.RESET)
             else:
                 subprocess.Popen(['cp', 'out.txt', output_file_path]).wait()
+            if not result:
+                ok = False
 
         if no_input_files:
-            print('No input files...')
+            print(clr.GREEN + 'No input files...' + clr.RESET)
         elif ok:
-            print('OK (max ' + str(max_time) + "s)")
+            print(clr.BLUE + 'OK (max ' + str(max_time) + "s)" + clr.RESET)
         else:
-            print('WrongAnswer (max ' + str(max_time) + "s)")
+            print(clr.RED + 'WrongAnswer (max ' + str(max_time) + "s)" +
+                    clr.RESET)
 
     def add_test_case_template(self):
         for index in range(100):
