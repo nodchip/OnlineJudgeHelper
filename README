@@ -53,6 +53,8 @@ NPCA Judge         | --npca       | http://judge.npca.jp/problems/view/[ problem
 KCS                | --kcs        | http://kcs.miz-miz.biz/contest/[ contest_id ]/view_problem/[ problem_id ]
 yukicoder          | --yukicoder  | problem_id=問題番号（No.xx 問題名 のxx部分）(http://yukicoder.me/problems/no/[ problem_id ])
 
+AtCoderのproblem_idは`arc042_a`のようにcontest_idを含む形になっていることが多いですが、単に`a`とだけ指定することも可能です。
+
 3-1. 初めて使う場合
 設定ファイルを"setting.json"という名前で作成し、
 oj.pyと同じディレクトリに配置して下さい。
