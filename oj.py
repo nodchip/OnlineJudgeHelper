@@ -360,7 +360,7 @@ class POJ(OnlineJudge):
     def submit(self):
         opener = self.get_opener()
 
-        setting = json.load(open(self.args.setting_file_path))['poj']
+        setting = json.load(open(self.options.setting_file_path))['poj']
         postdata = dict()
         postdata['user_id1'] = setting['user_id']
         postdata['password1'] = setting['password']
@@ -425,7 +425,7 @@ class MJudge(OnlineJudge):
     def download_html(self):
         opener = self.get_opener()
 
-        setting = json.load(open(self.args.setting_file_path))['m_judge']
+        setting = json.load(open(self.options.setting_file_path))['m_judge']
         postdata = dict()
         postdata['user'] = setting['user_id']
         postdata['pswd'] = setting['password']
@@ -453,7 +453,7 @@ class MJudge(OnlineJudge):
     def submit(self):
         opener = self.get_opener()
 
-        setting = json.load(open(self.args.setting_file_path))['m_judge']
+        setting = json.load(open(self.options.setting_file_path))['m_judge']
         postdata = dict()
         postdata['user'] = setting['user_id']
         postdata['pswd'] = setting['password']
@@ -497,7 +497,7 @@ class AOJ(OnlineJudge):
     def submit(self):
         opener = self.get_opener()
 
-        setting = json.load(open(self.args.setting_file_path))['aoj']
+        setting = json.load(open(self.options.setting_file_path))['aoj']
 
         postdata = dict()
         postdata['userID'] = setting['user_id']
@@ -594,7 +594,7 @@ class AtCoder(OnlineJudge):
         if self.opener == None:
             opener = OnlineJudge.get_opener(self)
 
-            setting = json.load(open(self.args.setting_file_path))['atcoder']
+            setting = json.load(open(self.options.setting_file_path))['atcoder']
             postdata = dict()
             postdata['name'] = setting['user_id']
             postdata['password'] = setting['password']
@@ -647,7 +647,7 @@ class AtCoder(OnlineJudge):
         print 'Submit ... ' + str(p.getcode())
 
         time.sleep(2.0)
-        setting = json.load(open(self.args.setting_file_path))['atcoder']
+        setting = json.load(open(self.options.setting_file_path))['atcoder']
         subprocess.call([setting['browser'], 'http://%s.contest.atcoder.jp/submissions/me' % self.contest_id])
 
     def get_language_id_from_extension(self):
@@ -673,7 +673,7 @@ class ZOJContest(OnlineJudge):
         if self.opener == None:
             opener = OnlineJudge.get_opener(self)
 
-            setting = json.load(open(self.args.setting_file_path))['zoj']
+            setting = json.load(open(self.options.setting_file_path))['zoj']
             postdata = dict()
             postdata['handle'] = setting['user_id']
             postdata['password'] = setting['password']
@@ -731,7 +731,7 @@ class NPCA(OnlineJudge):
         if self.opener == None:
             opener = OnlineJudge.get_opener(self)
 
-            setting = json.load(open(self.args.setting_file_path))['npca']
+            setting = json.load(open(self.options.setting_file_path))['npca']
             postdata = dict()
             postdata['_method'] = 'POST'
             postdata['data[User][username]'] = setting['user_id']
@@ -792,7 +792,7 @@ class KCS(OnlineJudge):
         if self.opener == None:
             opener = OnlineJudge.get_opener(self)
 
-            setting = json.load(open(self.args.setting_file_path))['kcs']
+            setting = json.load(open(self.options.setting_file_path))['kcs']
             postdata = dict()
             postdata['user_id'] = setting['user_id']
             postdata['password'] = setting['password']
@@ -828,7 +828,7 @@ class KCS(OnlineJudge):
         print 'Submit ... ' + str(p.getcode())
 
         time.sleep(2.0)
-        setting = json.load(open(self.args.setting_file_path))['kcs']
+        setting = json.load(open(self.options.setting_file_path))['kcs']
         subprocess.call([setting['browser'], 'http://kcs.miz-miz.biz/contest/%s/submission_list/page=1' % self.contest_id])
 
     def get_language_id_from_extension(self):
@@ -936,11 +936,11 @@ def main():
         parser.print_help()
         return
 
-    if args.setting_file_path is None:
+    if options.setting_file_path is None:
         if os.path.exists('setting.json'):
-            args.setting_file_path = 'setting.json'
+            options.setting_file_path = 'setting.json'
         elif os.path.exists(os.path.join(os.environ['HOME'], '.onlinejudgehelper.setting.json')):
-            args.setting_file_path = os.path.join(os.environ['HOME'], '.onlinejudgehelper.setting.json')
+            options.setting_file_path = os.path.join(os.environ['HOME'], '.onlinejudgehelper.setting.json')
         else:
             print "Select setting.json."
             parser.print_help()
