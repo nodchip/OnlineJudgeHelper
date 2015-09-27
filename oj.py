@@ -11,6 +11,7 @@ import subprocess
 import time
 import urllib
 import urllib2
+import zipfile
 
 class Validator:
     def validate(self, answer_path, output_path):
@@ -26,12 +27,13 @@ class FloatingPointValidator(Validator):
     absolute_error = None
     def __init__(self, absolute_error):
         self.absolute_error = float(absolute_error)
+        self.relative_error = float(absolute_error)
 
     def validate(self, answer_path, output_path):
         answer_file = open(answer_path)
         output_file = open(output_path)
         result = True
-        print '%-25s %-25s   %s' % ('answer', 'output', 'diff')
+        print('%-25s %-25s   %-15s %s' % ('answer', 'output', 'diff', 'reldiff'))
         while True:
             answer_line = answer_file.readline()
             output_line = output_file.readline()
@@ -46,8 +48,9 @@ class FloatingPointValidator(Validator):
             output_value = float(output_line)
             ok = False
             diff = output_value - answer_value
+            reldiff = diff / output_value if output_value else 1e9
 
-            if abs(diff) < self.absolute_error:
+            if abs(diff) < self.absolute_error or abs(reldiff) < self.relative_error :
                 ok = True
 
 #            if abs(answer_value) > absolute_error:
@@ -60,7 +63,7 @@ class FloatingPointValidator(Validator):
                 separator = '|'
                 result = False
 
-            print '%-25s %-25s %s %e' % (answer_line, output_line, separator, diff)
+            print('%-25s %-25s %s %-15e %e' % (answer_line, output_line, separator, diff, reldiff))
         return result
 
 
@@ -73,14 +76,17 @@ class Solution:
         start_time = time.time()
         p = subprocess.Popen(self.get_execute_command_line(),
                              stdin=open(input_file_path, 'r'),
-                             stdout=open(output_file_path, 'w'))
+                             stdout=open(output_file_path, 'w'),
+                             env=self.get_execute_env())
         if p.wait() != 0:
-            print 'RuntimeError?'
+            print('RuntimeError?')
             exit(-1)
         end_time = time.time()
         return end_time - start_time
     def get_execute_command_line(self):
         raise NotImplementedError
+    def get_execute_env(self):
+        return os.environ
 
 
 class SolutionC(Solution):
@@ -96,7 +102,7 @@ class SolutionCxx(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
-        return subprocess.call(['g++', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', '-std=c++11', '-Wl,-stack,10485760', self.source_file_name]) == 0
+        return subprocess.call(['g++', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', '-std=c++11', self.source_file_name]) == 0
     def get_execute_command_line(self):
         return ['./a.exe']
 
@@ -134,8 +140,48 @@ class SolutionPython(Solution):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['PYENV_VERSION']='2.7.9'
+        return env
     def get_execute_command_line(self):
         return ['python', self.source_file_name]
+
+class SolutionPyPy(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['PYENV_VERSION']='pypy-2.5.0'
+        return env
+    def get_execute_command_line(self):
+        return ['pypy', self.source_file_name]
+
+class SolutionPython3(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['PYENV_VERSION']='3.4.2'
+        return env
+    def get_execute_command_line(self):
+        return ['python3', self.source_file_name]
+
+class SolutionPyPy3(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['PYENV_VERSION']='pypy3-2.4.0'
+        return env
+    def get_execute_command_line(self):
+        return ['pypy3', self.source_file_name]
 
 
 class SolutionPerl(Solution):
@@ -152,8 +198,35 @@ class SolutionRuby(Solution):
         Solution.__init__(self, source_file_name)
     def compile(self):
         return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['RBENV_VERSION']='2.2.0'
+        return env
     def get_execute_command_line(self):
         return ['ruby', self.source_file_name]
+
+class SolutionRuby19(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['RBENV_VERSION']='system'
+        return env
+    def get_execute_command_line(self):
+        return ['ruby', self.source_file_name]
+
+class SolutionRubyTopaz(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return True
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['RBENV_VERSION']='topaz-dev'
+    def get_execute_command_line(self):
+        return ['topaz', self.source_file_name]
 
 
 class SolutionHaskell(Solution):
@@ -163,6 +236,42 @@ class SolutionHaskell(Solution):
         return subprocess.call(['ghc', '-o', 'a.exe', self.source_file_name]) == 0
     def get_execute_command_line(self):
         return ['./a.exe']
+
+class SolutionScala(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def get_execute_env(self):
+        env=os.environ.copy()
+        env['SCALAENV_VERSION']='scala-2.11.5'
+    def compile(self):
+        return subprocess.call(['scalac', self.source_file_name],env=self.get_execute_env()) == 0
+    def get_execute_command_line(self):
+        return ['scala',"-J-Xmx1024m","Main"]
+
+class SolutionCs(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        s=subprocess.check_output(['cygpath', '-w', self.source_file_name]).rstrip()
+        return subprocess.call(['csc', '/out:a.exe', s]) == 0
+    def get_execute_command_line(self):
+        return ['./a.exe']
+
+class SolutionGo(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return subprocess.call(['go', 'build', '-o', 'a.out', self.source_file_name]) == 0
+    def get_execute_command_line(self):
+        return ['./a.out']
+
+class SolutionD(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return subprocess.call(['dmd', '-m64', '-w', '-wi', '-O', '-release', '-inline', '-ofa.out', self.source_file_name]) == 0
+    def get_execute_command_line(self):
+        return ['./a.out']
 
 
 class OnlineJudge:
@@ -179,10 +288,10 @@ class OnlineJudge:
         raise NotImplementedError
 
     def get_input_file_name(self, index):
-        return self.problem_id + '.' + str(index) + '.in.txt'
+        return self.__class__.__name__ + '.' + self.problem_id + '.' + str(index) + '.in.txt'
 
     def get_output_file_name(self, index):
-        return self.problem_id + '.' + str(index) + '.out.txt'
+        return self.__class__.__name__ + '.' + self.problem_id + '.' + str(index) + '.out.txt'
 
     def get_source_file_name(self):
         if self.options.source_file_name:
@@ -235,13 +344,33 @@ class OnlineJudge:
         elif ext == '.php':
             return SolutionPhp(source_file_name)
         elif ext == '.py':
-            return SolutionPython(source_file_name)
+            if self.options.py3:
+                return SolutionPython3(source_file_name)
+            elif self.options.pypy:
+                return SolutionPyPy(source_file_name)
+            elif self.options.pypy3:
+                return SolutionPyPy3(source_file_name)
+            else:
+                return SolutionPython(source_file_name)
         elif ext == '.pl':
             return SolutionPerl(source_file_name)
         elif ext == '.rb':
-            return SolutionRuby(source_file_name)
+            if self.options.r19:
+                return SolutionRuby19(source_file_name)
+            if self.options.topaz:
+                return SolutionRubyTopaz(source_file_name)
+            else:
+                return SolutionRuby(source_file_name)
         elif ext == '.hs':
             return SolutionHaskell(source_file_name)
+        elif ext == '.scala':
+            return SolutionScala(source_file_name)
+        elif ext == '.cs':
+            return SolutionCs(source_file_name)
+        elif ext == '.go':
+            return SolutionGo(source_file_name)
+        elif ext == '.d':
+            return SolutionD(source_file_name)
         else:
             return Solution(source_file_name)
 
@@ -252,16 +381,16 @@ class OnlineJudge:
             return FloatingPointValidator(self.options.floating_point)
 
     def check(self):
-        print 'compiling...'
+        print('compiling...')
 
         solution = self.get_solution()
 
         if not solution.compile():
-            print 'CompileError'
+            print('CompileError')
             exit(-1)
 
         if not os.path.exists(self.get_input_file_name(0)) or not os.path.exists(self.get_output_file_name(0)):
-            print 'downloading...'
+            print('downloading...')
             self.download()
 
         max_time = 0.0
@@ -280,7 +409,7 @@ class OnlineJudge:
 
             no_input_files = False
 
-            print '----- Case #%d -----' % index
+            print('----- Case #%d -----' % index)
 
             execution_time = solution.execute(input_file_path, 'out.txt')
 
@@ -290,14 +419,14 @@ class OnlineJudge:
             if os.path.exists(output_file_path):
                 ok = validator.validate(output_file_path, 'out.txt') and ok
             else:
-                subprocess.Popen(['cat', 'out.txt']).wait()
+                subprocess.Popen(['cp', 'out.txt', output_file_path]).wait()
 
         if no_input_files:
-            print 'No input files...'
+            print('No input files...')
         elif ok:
-            print 'OK (max ' + str(max_time) + "s)"
+            print('OK (max ' + str(max_time) + "s)")
         else:
-            print 'WrongAnswer (max ' + str(max_time) + "s)"
+            print('WrongAnswer (max ' + str(max_time) + "s)")
 
     def add_test_case_template(self):
         for index in range(100):
@@ -307,7 +436,7 @@ class OnlineJudge:
                 continue
             open(input_filepath, 'w').close()
             open(output_filepath, 'w').close()
-            print "Test case template file " + str(index) + " is created."
+            print("Test case template file " + str(index) + " is created.")
             return
 
     def submit(self):
@@ -318,16 +447,16 @@ class OnlineJudge:
             src = self.get_source_file_name()
             dst = self.get_source_file_name() + ".bak"
             shutil.copyfile(src, dst)
-            print 'Copied %s to %s' % (src, dst)
+            print('Copied %s to %s' % (src, dst))
         except IOError, (errno, strerror):
-            print "I/O error(%s): %s" % (errno, strerror)
+            print("I/O error(%s): %s" % (errno, strerror))
         try:
             src = 'template.cpp'
             dst = self.get_source_file_name()
             shutil.copyfile(src, dst)
-            print 'Copied %s to %s' % (src, dst)
+            print('Copied %s to %s' % (src, dst))
         except IOError, (errno, strerror):
-            print "I/O error(%s): %s" % (errno, strerror)
+            print("I/O error(%s): %s" % (errno, strerror))
 
     def get_language_id(self):
         source_file_name = self.get_source_file_name()
@@ -366,7 +495,7 @@ class POJ(OnlineJudge):
         postdata['password1'] = setting['password']
         params = urllib.urlencode(postdata)
         p = opener.open('http://poj.org/login', params)
-        print 'Login ... ' + str(p.getcode())
+        print('Login ... ' + str(p.getcode()))
 
         postdata = dict()
         postdata['language'] = self.get_language_id()
@@ -375,7 +504,7 @@ class POJ(OnlineJudge):
         postdata['submit'] = 'Submit'
         params = urllib.urlencode(postdata)
         p = opener.open('http://poj.org/submit', params)
-        print 'Submit ... ' + str(p.getcode())
+        print('Submit ... ' + str(p.getcode()))
 
         time.sleep(2.0)
         subprocess.call([setting['browser'], 'http://poj.org/status?problem_id=&user_id=' + setting['user_id'] + '&result=&language='])
@@ -459,7 +588,7 @@ class MJudge(OnlineJudge):
         postdata['pswd'] = setting['password']
         params = urllib.urlencode(postdata)
         p = opener.open('http://m-judge.maximum.vc/login.cgi', params)
-        print 'Login ... ' + str(p.getcode())
+        print('Login ... ' + str(p.getcode()))
 
         postdata = dict()
         postdata['m'] = '1'
@@ -468,7 +597,7 @@ class MJudge(OnlineJudge):
         postdata['code'] = open(self.get_source_file_name()).read()
         params = urllib.urlencode(postdata)
         p = opener.open('http://m-judge.maximum.vc/submit.cgi', params)
-        print 'Submit ... ' + str(p.getcode())
+        print('Submit ... ' + str(p.getcode()))
 
         subprocess.call([setting['browser'], 'http://m-judge.maximum.vc/result.cgi'])
 
@@ -508,7 +637,7 @@ class AOJ(OnlineJudge):
         postdata['submit'] = 'Send'
         params = urllib.urlencode(postdata)
         p = opener.open('http://judge.u-aizu.ac.jp/onlinejudge/servlet/Submit', params)
-        print 'Submit ... ' + str(p.getcode())
+        print('Submit ... ' + str(p.getcode()))
 
         time.sleep(2.0)
         subprocess.call([setting['browser'], 'http://judge.u-aizu.ac.jp/onlinejudge/status.jsp'])
@@ -523,6 +652,35 @@ class AOJ(OnlineJudge):
                 '.rb':'Ruby',
                 '.py':'Python',
                 '.php':'PHP',}
+
+
+class AOJ_test(OnlineJudge):
+    def __init__(self, options, args):
+        OnlineJudge.__init__(self, options, args[0])
+
+    def get_url(self,index,inout):
+        return 'http://analytic.u-aizu.ac.jp:8080/aoj/testcase.jsp?id=' + self.problem_id + '&case=' + str(index) + '&type=' + inout
+
+    def download_html(self,index,inout):
+        url = self.get_url(index,inout)
+        return self.get_opener().open(url).read()
+
+    def download(self):
+        for index in range(100):
+            try:
+                input_data=self.download_html(index+1,"in")
+                if input_data == "In preparation.\n":
+                    print("testcase in preparation")
+                    break
+                output_data=self.download_html(index+1,"out")
+                input_file_name = self.get_input_file_name(index)
+                output_file_name = self.get_output_file_name(index)
+                open(input_file_name, 'w').write(input_data)
+                open(output_file_name, 'w').write(output_data)
+            except:
+                print("testcase notfound: index%d"%index)
+                break
+        return True
 
 
 class CodeChef(OnlineJudge):
@@ -622,11 +780,8 @@ class AtCoder(OnlineJudge):
             postdata['password'] = setting['password']
             postdata['submit'] = 'login'
             params = urllib.urlencode(postdata)
-            url = 'https://%s.contest.atcoder.jp/login' % self.contest_id
-            # print url
-            p = opener.open(url, params)
-            print 'Login ... ' + str(p.getcode())
-            # print p.read()
+            p = opener.open('https://%s.contest.atcoder.jp/login' % self.contest_id, params)
+            print('Login ... ' + str(p.getcode()))
         return self.opener
 
     def download(self):
@@ -665,11 +820,11 @@ class AtCoder(OnlineJudge):
         postdata['source_code'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'submit'
         params = urllib.urlencode(postdata)
-        p = opener.open('https://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
-        print 'Submit ... ' + str(p.getcode())
+        p = opener.open('http://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
+        print('Submit ... ' + str(p.getcode()))
 
         time.sleep(2.0)
-        setting = json.load(open(self.options.setting_file_path))['atcoder']
+        setting = json.load(open('setting.json'))['atcoder']
         subprocess.call([setting['browser'], 'http://%s.contest.atcoder.jp/submissions/me' % self.contest_id])
 
     def get_language_id_from_extension(self):
@@ -703,7 +858,7 @@ class ZOJContest(OnlineJudge):
             postdata['submit'] = 'Login'
             params = urllib.urlencode(postdata)
             p = opener.open('http://acm.zju.edu.cn/onlinejudge/login.do', params)
-            print 'Login ... ' + str(p.getcode())
+            print('Login ... ' + str(p.getcode()))
         return self.opener
 
     def download(self):
@@ -730,7 +885,7 @@ class ZOJContest(OnlineJudge):
         postdata['submit'] = 'Submit'
         params = urllib.urlencode(postdata)
         p = opener.open('http://acm.zju.edu.cn/onlinejudge/contestSubmit.do')
-        print 'Submit ... ' + str(p.getcode())
+        print('Submit ... ' + str(p.getcode()))
 
     def get_language_id_from_extension(self):
         return {'.cpp':'2',
@@ -762,7 +917,7 @@ class NPCA(OnlineJudge):
             postdata['submit'] = 'Login'
             params = urllib.urlencode(postdata)
             p = opener.open('http://judge.npca.jp/users/login', params)
-            print 'Login ... ' + str(p.getcode())
+            print('Login ... ' + str(p.getcode()))
         return self.opener
 
     def download(self):
@@ -789,7 +944,7 @@ class NPCA(OnlineJudge):
         postdata['submit'] = 'Submit'
         params = urllib.urlencode(postdata)
         p = opener.open('http://judge.npca.jp/submissions/submit/%s/' % self.problem_id)
-        print 'Submit ... ' + str(p.getcode())
+        print('Submit ... ' + str(p.getcode()))
 
     def get_language_id_from_extension(self):
         return {'.cpp':'2',
@@ -808,7 +963,7 @@ class KCS(OnlineJudge):
         self.contest_id = args[0]
 
     def get_url(self):
-        return "http://kcs.miz-miz.biz/contest/%s/view_problem/%s" % (self.contest_id, self.problem_id)
+        return "http://kcs.miz-miz.biz/contest/%s/view/%s" % (self.contest_id, self.problem_id)
 
     def get_opener(self):
         if self.opener == None:
@@ -820,8 +975,8 @@ class KCS(OnlineJudge):
             postdata['password'] = setting['password']
             postdata['submit'] = '送信'
             params = urllib.urlencode(postdata)
-            p = opener.open('http://kcs.miz-miz.biz/login', params)
-            print 'Login ... ' + str(p.getcode())
+            p = opener.open('http://kcs.miz-miz.biz/user/login', params)
+            print('Login ... ' + str(p.getcode()))
         return self.opener
 
     def download(self):
@@ -846,12 +1001,12 @@ class KCS(OnlineJudge):
         postdata['code'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'submit'
         params = urllib.urlencode(postdata)
-        p = opener.open('http://kcs.miz-miz.biz/contest/%s/submit_problem/%s' % (self.contest_id, self.problem_id), params)
-        print 'Submit ... ' + str(p.getcode())
+        p = opener.open('http://kcs.miz-miz.biz/contest/%s/submit/%s' % (self.contest_id, self.problem_id), params)
+        print('Submit ... ' + str(p.getcode()))
 
         time.sleep(2.0)
-        setting = json.load(open(self.options.setting_file_path))['kcs']
-        subprocess.call([setting['browser'], 'http://kcs.miz-miz.biz/contest/%s/submission_list/page=1' % self.contest_id])
+        setting = json.load(open('setting.json'))['kcs']
+        subprocess.call([setting['browser'], 'http://kcs.miz-miz.biz/contest/%s/submissions/page=1' % self.contest_id])
 
     def get_language_id_from_extension(self):
         return {'.c':'C',
@@ -868,12 +1023,12 @@ class yukicoder(OnlineJudge):
         OnlineJudge.__init__(self, options, args[0])
 
     def get_url(self):
-        return "http://yukicoder.me/problems/%s" % self.problem_id
+        return "http://yukicoder.me/problems/no/%s" % self.problem_id
 
     def download(self):
         html = self.download_html()
-        if 'サンプル' in html:
-            html = html[html.find('サンプル'):]
+        if 'class="sample"' in html:
+            html = html[html.find('class="sample"'):]
         p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
         result = p.findall(html)
         n = len(result) / 2
@@ -884,6 +1039,54 @@ class yukicoder(OnlineJudge):
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
 
+    def get_source_file_name(self):
+        if self.options.source_file_name:
+            return self.options.source_file_name
+        else:
+            return '../yukicoder' + self.problem_id + '.rb'
+
+class yukicoder_test(OnlineJudge):
+    def __init__(self, options, args):
+        OnlineJudge.__init__(self, options, args[0])
+        self.testcase_names=[""]
+        testfoldername = self.__class__.__name__ + '.' + self.problem_id + "/test_in"
+        if os.path.exists(testfoldername):
+            self.testcase_names = os.listdir(testfoldername)
+
+    def get_input_file_name(self, index):
+        if len(self.testcase_names) <= index:
+            return "----invalid name" # とりあえずなさそうな名前を返す
+        print(self.testcase_names[index])
+        return self.__class__.__name__ + '.' + self.problem_id + '/test_in/' + self.testcase_names[index]
+
+    def get_output_file_name(self, index):
+        if len(self.testcase_names) <= index:
+            return "----invalid name" # とりあえずなさそうな名前を返す
+        return self.__class__.__name__ + '.' + self.problem_id + '/test_out/' + self.testcase_names[index]
+
+    def get_url(self):
+        return "http://yukicoder.me/problems/no/%s/testcase.zip" % self.problem_id
+
+    def download(self):
+        if self.problem_id == "9999":
+            return True
+        try:
+            zipf = self.get_opener().open(self.get_url())
+            zipname = self.__class__.__name__ + '.' + self.problem_id + ".zip"
+            open(zipname, "w").write(zipf.read())
+            with zipfile.ZipFile(zipname) as z:
+                self.testcase_names = [os.path.basename(i) for i in z.namelist() if i[0:7]=="test_in"]
+                z.extractall(self.__class__.__name__ + '.' + self.problem_id)
+            return True
+        except urllib2.HTTPError as error:
+            print(error)
+            return False
+
+    def get_source_file_name(self):
+        if self.options.source_file_name:
+            return self.options.source_file_name
+        else:
+            return '../yukicoder' + self.problem_id + '.rb'
 
 def main():
     usage = "usage: %(prog)s [options] ... [contest_id] problem_id"
@@ -952,7 +1155,10 @@ def main():
                       help="KCS (Kagamiz Contest System)")
     contest.add_argument("--yukicoder", action="store_const",
                       const="yukicoder", dest="contest",
-                      help="yukicoder")
+                      help="yukicoder sample case")
+    contest.add_argument("--yukicoder-test", action="store_const",
+                      const="yukicoder_test", dest="contest",
+                      help="yukicoder all test case")
 
     # misc
     parser.add_argument("-t", "--titech-pubnet", action="store_true",
@@ -964,6 +1170,26 @@ def main():
     command.add_argument('-d', '--download', action="store_const",
                       const='download', dest="command",
                       help="Only download the test cases")
+
+    parser.add_option('--r19', action="store_true",
+                      dest='r19', default=False,
+                      help="use Ruby1.9 for test")
+
+    parser.add_option('--topaz', action="store_true",
+                      dest='topaz', default=False,
+                      help="use Topaz for test")
+
+    parser.add_option('--py3', action="store_true",
+                      dest='py3', default=False,
+                      help="use Python3 for test")
+
+    parser.add_option('--pypy', action="store_true",
+                      dest='pypy', default=False,
+                      help="use PyPy for test")
+
+    parser.add_option('--pypy3', action="store_true",
+                      dest='pypy3', default=False,
+                      help="use PyPy3 for test")
 
     options = parser.parse_args()
     args = [options.contest_id, options.problem_id]
@@ -1004,6 +1230,8 @@ def main():
         online_judge = KCS(options, args)
     elif options.contest == "yukicoder":
         online_judge = yukicoder(options, args)
+    elif options.contest == "yukicoder_test":
+        online_judge = yukicoder_test(options, args)
     elif options.contest == "poj":
         online_judge = POJ(options, args)
     else:
