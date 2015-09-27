@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-from optparse import OptionParser
+import argparse
 import cookielib
 import json
 import os
@@ -886,77 +886,92 @@ class yukicoder(OnlineJudge):
 
 
 def main():
-    usage = "usage: %prog [options] ... [contest_id] problem_id"
-    parser = OptionParser(usage=usage)
+    usage = "usage: %(prog)s [options] ... [contest_id] problem_id"
+    parser = argparse.ArgumentParser(usage=usage)
+
+    parser.add_argument('contest_id', nargs='?')
+    parser.add_argument('problem_id')
+
+    # command = parser.add_mutually_exclusive_group()
+    # for title
+    # > Note that currently mutually exclusive argument groups do not support the title and description arguments of add_argument_group().
+    command = parser.add_argument_group(title="command")
+
     # function
-    parser.add_option("-c", "--create-solution-template-file", action="store_true",
-                      dest="create_solution_template_file", default=False,
+    command.add_argument("--check", action="store_const",
+                      const="check", dest="command", default="check",
+                      help="(default)")
+    command.add_argument("-c", "--create-solution-template-file", action="store_const",
+                      const="create_solution_template_file", dest="command",
                       help="Build and check the solution")
-    parser.add_option("-s", "--submit", action="store_true",
-                      dest="submit", default=False,
+    command.add_argument("-s", "--submit", action="store_const",
+                      const="submit", dest="command",
                       help="Submit the solution")
-    parser.add_option("-a", "--add-test-case-template", action="store_true",
-                      dest="add_test_case", default=False,
+    command.add_argument("-a", "--add-test-case-template", action="store_const",
+                      const="add_test_case", dest="command",
                       help="Add a test case template file")
-    parser.add_option('-i', '--source-file-name', action='store',
+    parser.add_argument('-i', '--source-file-name', action='store',
                       dest='source_file_name', default=None,
                       help='Specify the source file name')
-    parser.add_option('--setting-file-path', action='store',
+    parser.add_argument('--setting-file-path', action='store',
                       dest='setting_file_path', default=None,
                       help='Specify the setting file path')
 
     # switch online judge
-    parser.add_option("--poj", action="store_true",
-                      dest="poj", default=True,
-                      help="PKU JudgeOnline")
-    parser.add_option("--codeforces", action="store_true",
-                      dest="codeforces", default=False,
+    # contest = parser.add_mutually_exclusive_group()
+    contest = parser.add_argument_group(title="contest")
+    contest.add_argument("--poj", action="store_const",
+                      const="poj", dest="contest", default="poj",
+                      help="PKU JudgeOnline (default)")
+    contest.add_argument("--codeforces", action="store_const",
+                      const="codeforces", dest="contest",
                       help="CodeForces")
-    parser.add_option("--mjudge", action="store_true",
-                      dest="m_judge", default=False,
+    contest.add_argument("--mjudge", action="store_const",
+                      const="m_judge", dest="contest",
                       help="M-Judge")
-    parser.add_option("--aoj", action="store_true",
-                      dest="aoj", default=False,
+    contest.add_argument("--aoj", action="store_const",
+                      const="aoj", dest="contest",
                       help="Aizu Online Judge")
-    parser.add_option("--codechef", action="store_true",
-                      dest="codechef", default=False,
+    contest.add_argument("--codechef", action="store_const",
+                      const="codechef", dest="contest",
                       help="CodeChef")
-    parser.add_option("--imojudge", action="store_true",
-                      dest="imojudge", default=False,
+    contest.add_argument("--imojudge", action="store_const",
+                      const="imojudge", dest="contest",
                       help="Imo Judge")
-    parser.add_option("--atcoder", action="store_true",
-                      dest="atcoder", default=False,
+    contest.add_argument("--atcoder", action="store_const",
+                      const="atcoder", dest="contest",
                       help="AtCoder")
-    parser.add_option("--zojcontest", action="store_true",
-                      dest="zoj_contest", default=False,
+    contest.add_argument("--zojcontest", action="store_const",
+                      const="zoj_contest", dest="contest",
                       help="ZOJ Contest")
-    parser.add_option("--npca", action="store_true",
-                      dest="npca", default=False,
+    contest.add_argument("--npca", action="store_const",
+                      const="npca", dest="contest",
                       help="NPCA (Nada Personal Computer users' Association) Judge")
-    parser.add_option("--kcs", action="store_true",
-                      dest="kcs", default=False,
+    contest.add_argument("--kcs", action="store_const",
+                      const="kcs", dest="contest",
                       help="KCS (Kagamiz Contest System)")
-    parser.add_option("--yukicoder", action="store_true",
-                      dest="yukicoder", default=False,
+    contest.add_argument("--yukicoder", action="store_const",
+                      const="yukicoder", dest="contest",
                       help="yukicoder")
 
     # misc
-    parser.add_option("-t", "--titech-pubnet", action="store_true",
+    parser.add_argument("-t", "--titech-pubnet", action="store_true",
                       dest="titech_pubnet", default=False,
                       help="Use titech pubnet proxy",)
-    parser.add_option("-e", action="store",
+    parser.add_argument("-e", action="store",
                       dest="floating_point", default=None,
                       help="Use floating point validator and set max error")
-    parser.add_option('-d', '--download', action="store_true",
-                      dest='download', default=False,
+    command.add_argument('-d', '--download', action="store_const",
+                      const='download', dest="command",
                       help="Only download the test cases")
 
-    (options, args) = parser.parse_args()
-
-    if len(args) == 0:
-        print "Select problem id."
-        parser.print_help()
-        return
+    options = parser.parse_args()
+    args = [options.contest_id, options.problem_id]
+    try:
+        while True:
+            args.remove(None)
+    except ValueError:
+        pass
 
     if options.setting_file_path is None:
         if os.path.exists('setting.json'):
@@ -969,43 +984,43 @@ def main():
             return
 
     online_judge = None
-    if options.zoj_contest:
+    if options.contest == "zoj_contest":
         online_judge = ZOJContest(options, args)
-    elif options.atcoder:
+    elif options.contest == "atcoder":
         online_judge = AtCoder(options, args)
-    elif options.imojudge:
+    elif options.contest == "imojudge":
         online_judge = ImoJudge(options, args)
-    elif options.codechef:
+    elif options.contest == "codechef":
         online_judge = CodeChef(options, args)
-    elif options.codeforces:
+    elif options.contest == "codeforces":
         online_judge = CodeForces(options, args)
-    elif options.m_judge:
+    elif options.contest == "m_judge":
         online_judge = MJudge(options, args)
-    elif options.aoj:
+    elif options.contest == "aoj":
         online_judge = AOJ(options, args)
-    elif options.npca:
+    elif options.contest == "npca":
         online_judge = NPCA(options, args)
-    elif options.kcs:
+    elif options.contest == "kcs":
         online_judge = KCS(options, args)
-    elif options.yukicoder:
+    elif options.contest == "yukicoder":
         online_judge = yukicoder(options, args)
-    elif options.poj:
+    elif options.contest == "poj":
         online_judge = POJ(options, args)
     else:
-        print 'Select an online judge!!!'
-        parser.print_help()
-        return
+        assert False
 
-    if options.add_test_case:
+    if options.command == "add_test_case":
         online_judge.add_test_case_template()
-    elif options.submit:
+    elif options.command == "submit":
         online_judge.submit()
-    elif options.create_solution_template_file:
+    elif options.command == "create_solution_template_file":
         online_judge.create_solution_template_file()
-    elif options.download:
+    elif options.command == "download":
         online_judge.download()
-    else:
+    elif options.command == "check":
         online_judge.check()
+    else:
+        assert False
 
 if __name__ == '__main__':
     main()
