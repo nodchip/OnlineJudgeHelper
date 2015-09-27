@@ -587,6 +587,28 @@ class AtCoder(OnlineJudge):
         OnlineJudge.__init__(self, options, args[1])
         self.contest_id = args[0]
 
+        self.problem_id = self.assume_correct_probrem_id()
+
+    def assume_correct_probrem_id(self):
+        result = re.match('(a[rb]c)(\d{3})', self.contest_id)
+        if result and self.problem_id in list('1234ABCDabcd'):
+            contest_type = result.group(1)
+            contest_id_number = int(result.group(2))
+            if self.problem_id in list('1234'):
+                problem_id_number = int(self.problem_id)
+            else:
+                problem_id_number = list('abcd').index(self.problem_id.lower()) + 1
+            if (contest_type == 'arc' and contest_id_number >= 35) or \
+                    (contest_type == 'abc' and contest_id_number >= 20):
+                return self.contest_id + '_' + list('abcd')[problem_id_number - 1]
+            else:
+                return self.contest_id + '_' + str(problem_id_number)
+        elif self.problem_id.find('_') == -1:
+            # is this really corrent?
+            return self.contest_id.replace('-', '_') + '_' + self.problem_id
+        else:
+            return self.problem_id
+
     def get_url(self):
         return "http://%s.contest.atcoder.jp/tasks/%s" % (self.contest_id, self.problem_id)
 
