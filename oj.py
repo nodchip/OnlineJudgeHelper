@@ -5,6 +5,7 @@ import cookielib
 import json
 import os
 import os.path
+import platform
 import re
 import shutil
 import subprocess
@@ -87,24 +88,29 @@ class Solution:
         raise NotImplementedError
     def get_execute_env(self):
         return os.environ
+    def get_a_out_name(self):
+        if platform.system() == 'Windows':
+            return 'a.exe'
+        else:
+            return 'a.out'
 
 
 class SolutionC(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
-        return subprocess.call(['gcc', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', self.source_file_name]) == 0
+        return subprocess.call(['gcc', '-O2', '-o', self.get_a_out_name(), '-Wno-deprecated', '-Wall', self.source_file_name]) == 0
     def get_execute_command_line(self):
-        return ['./a.exe']
+        return ['./' + self.get_a_out_name()]
 
 
 class SolutionCxx(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
-        return subprocess.call(['g++', '-O2', '-o', 'a.exe', '-Wno-deprecated', '-Wall', '-std=c++11', self.source_file_name]) == 0
+        return subprocess.call(['g++', '-O2', '-o', self.get_a_out_name(), '-Wno-deprecated', '-Wall', '-std=c++11', self.source_file_name]) == 0
     def get_execute_command_line(self):
-        return ['./a.exe']
+        return ['./' + self.get_a_out_name()]
 
 
 class SolutionJava(Solution):
@@ -233,9 +239,9 @@ class SolutionHaskell(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
-        return subprocess.call(['ghc', '-o', 'a.exe', self.source_file_name]) == 0
+        return subprocess.call(['ghc', '-o', self.get_a_out_name(), self.source_file_name]) == 0
     def get_execute_command_line(self):
-        return ['./a.exe']
+        return ['./' + self.get_a_out_name()]
 
 class SolutionScala(Solution):
     def __init__(self, source_file_name):
@@ -1171,23 +1177,23 @@ def main():
                       const='download', dest="command",
                       help="Only download the test cases")
 
-    parser.add_option('--r19', action="store_true",
+    parser.add_argument('--r19', action="store_true",
                       dest='r19', default=False,
                       help="use Ruby1.9 for test")
 
-    parser.add_option('--topaz', action="store_true",
+    parser.add_argument('--topaz', action="store_true",
                       dest='topaz', default=False,
                       help="use Topaz for test")
 
-    parser.add_option('--py3', action="store_true",
+    parser.add_argument('--py3', action="store_true",
                       dest='py3', default=False,
                       help="use Python3 for test")
 
-    parser.add_option('--pypy', action="store_true",
+    parser.add_argument('--pypy', action="store_true",
                       dest='pypy', default=False,
                       help="use PyPy for test")
 
-    parser.add_option('--pypy3', action="store_true",
+    parser.add_argument('--pypy3', action="store_true",
                       dest='pypy3', default=False,
                       help="use PyPy3 for test")
 
