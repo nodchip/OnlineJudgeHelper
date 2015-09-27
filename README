@@ -32,6 +32,7 @@
 3-1. 初めて使う場合
 設定ファイルを"setting.json"という名前で作成し、
 oj.pyと同じディレクトリに配置して下さい。
+あるいは".onlinejudgehelper.setting.json"という名前で、ホームディレクトリ直下に配置して下さい。
 内容は各種オンラインジャッジのユーザーID、パスワード、起動するブラウザを
 json形式で書いたものです。
 
@@ -51,6 +52,8 @@ json形式で書いたものです。
                         入出力データのひな形ファイルを追加作成します
   -i SOURCE_FILE_NAME, --source-file-name=SOURCE_FILE_NAME
                         ソースコードファイル名を指定します
+  --setting-file-path=SETTING_FILE_PATH
+                        設定ファイルのパスを指定します
   -t, --titech-pubnet   東工大内ネットワークからプロキシを使用して接続します
   -e FLOATING_POINT     許容誤差を指定して浮動小数バリデータを使用します
   -d, --download        サンプル入出力データのダウンロードのみ行います
