@@ -531,7 +531,7 @@ class AtCoder(OnlineJudge):
             return self.problem_id
 
     def get_url(self):
-        return "http://%s.contest.atcoder.jp/tasks/%s" % (self.contest_id, self.problem_id)
+        return "https://%s.contest.atcoder.jp/tasks/%s" % (self.contest_id, self.problem_id)
 
     def get_opener(self):
         if self.opener == None:
@@ -569,7 +569,7 @@ class AtCoder(OnlineJudge):
         result = p.findall(html)
         task_id = int(result[0])
 
-        html = self.get_opener().open('http://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id)).read()
+        html = self.get_opener().open('https://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id)).read()
         p = re.compile('name="__session" value="([0-9a-f]+?)"', re.M | re.S | re.I)
         result = p.findall(html)
         session = result[0]
@@ -583,12 +583,12 @@ class AtCoder(OnlineJudge):
         postdata['source_code'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'submit'
         params = urllib.urlencode(postdata)
-        p = opener.open('http://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
+        p = opener.open('https://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
         print('Submit ... ' + str(p.getcode()))
 
         time.sleep(2.0)
         setting = json.load(open(self.options.setting_file_path))['atcoder']
-        subprocess.call([setting['browser'], 'http://%s.contest.atcoder.jp/submissions/me' % self.contest_id])
+        subprocess.call([setting['browser'], 'https://%s.contest.atcoder.jp/submissions/me' % self.contest_id])
 
     def get_language_id_from_extension(self):
         return {'.cpp':'10',
