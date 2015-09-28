@@ -153,7 +153,8 @@ class OnlineJudge:
 
         validator = self.get_validator()
 
-        ok = True
+        accept = 0
+        total = 0
         no_input_files = True
 
         for index in range(100):
@@ -175,21 +176,20 @@ class OnlineJudge:
             if os.path.exists(output_file_path):
                 result = validator.validate(output_file_path, 'out.txt')
                 if result:
+                    accept += 1
                     print(clr.BLUE + ('ok (%f sec)' % execution_time) + clr.RESET)
                 else:
                     print(clr.RED + ('WA (%f sec)' % execution_time) + clr.RESET)
             else:
                 subprocess.Popen(['cp', 'out.txt', output_file_path]).wait()
-            if not result:
-                ok = False
+            total += 1
 
         if no_input_files:
             print(clr.GREEN + 'No input files...' + clr.RESET)
-        elif ok:
-            print(clr.BLUE + 'OK (max ' + str(max_time) + "s)" + clr.RESET)
+        elif accept == total:
+            print(clr.BLUE + 'OK ({} cases) (max {} sec)'.format(total, max_time) + clr.RESET)
         else:
-            print(clr.RED + 'WrongAnswer (max ' + str(max_time) + "s)" +
-                    clr.RESET)
+            print(clr.RED + 'WrongAnswer ({} WAs in {} cases) (max {} sec)'.format(total - accept, total, max_time) + clr.RESET)
 
     def add_test_case_template(self):
         for index in range(100):
