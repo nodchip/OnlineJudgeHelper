@@ -13,12 +13,11 @@ def main():
     parser.add_argument('contest_id', nargs='?')
     parser.add_argument('problem_id')
 
+    # command
     # command = parser.add_mutually_exclusive_group()
     # for title
     # > Note that currently mutually exclusive argument groups do not support the title and description arguments of add_argument_group().
     command = parser.add_argument_group(title="command")
-
-    # function
     command.add_argument("--check", action="store_const",
                       const="check", dest="command", default="check",
                       help="(default)")
@@ -31,15 +30,9 @@ def main():
     command.add_argument("-a", "--add-test-case-template", action="store_const",
                       const="add_test_case", dest="command",
                       help="Add a test case template file")
-    parser.add_argument('-i', '--source-file-name', action='store',
-                      dest='source_file_name', default=None,
-                      help='Specify the source file name')
-    parser.add_argument('--setting-file-path', action='store',
-                      dest='setting_file_path', default=None,
-                      help='Specify the setting file path')
-    parser.add_argument('--testcase-directory', action='store',
-                      dest='testcase_directory', default=None,
-                      help='Specify the directory for testcases')
+    command.add_argument('-d', '--download', action="store_const",
+                      const='download', dest="command",
+                      help="Only download the test cases")
 
     # switch online judge
     # contest = parser.add_mutually_exclusive_group()
@@ -82,32 +75,35 @@ def main():
                       help="yukicoder all test case")
 
     # misc
+    parser.add_argument('-i', '--source-file-name', action='store',
+                      dest='source_file_name', default=None,
+                      help='Specify the source file name')
+    parser.add_argument('--setting-file-path', action='store',
+                      dest='setting_file_path', default=None,
+                      help='Specify the setting file path')
+    parser.add_argument('--testcase-directory', action='store',
+                      dest='testcase_directory', default=None,
+                      help='Specify the directory for testcases')
+
     parser.add_argument("-t", "--titech-pubnet", action="store_true",
                       dest="titech_pubnet", default=False,
                       help="Use titech pubnet proxy",)
     parser.add_argument("-e", action="store",
                       dest="floating_point", default=None,
                       help="Use floating point validator and set max error")
-    command.add_argument('-d', '--download', action="store_const",
-                      const='download', dest="command",
-                      help="Only download the test cases")
 
     parser.add_argument('--r19', action="store_true",
                       dest='r19', default=False,
                       help="use Ruby1.9 for test")
-
     parser.add_argument('--topaz', action="store_true",
                       dest='topaz', default=False,
                       help="use Topaz for test")
-
     parser.add_argument('--py3', action="store_true",
                       dest='py3', default=False,
                       help="use Python3 for test")
-
     parser.add_argument('--pypy', action="store_true",
                       dest='pypy', default=False,
                       help="use PyPy for test")
-
     parser.add_argument('--pypy3', action="store_true",
                       dest='pypy3', default=False,
                       help="use PyPy3 for test")
@@ -126,9 +122,7 @@ def main():
         elif os.path.exists(os.path.join(os.environ['HOME'], '.onlinejudgehelper.setting.json')):
             options.setting_file_path = os.path.join(os.environ['HOME'], '.onlinejudgehelper.setting.json')
         else:
-            print "Select setting.json."
-            parser.print_help()
-            return
+            parser.error("setting.json is not found")
     setting = json.load(open(options.setting_file_path))
 
     online_judge = None
@@ -182,5 +176,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
