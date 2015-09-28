@@ -587,7 +587,7 @@ class AtCoder(OnlineJudge):
         print('Submit ... ' + str(p.getcode()))
 
         time.sleep(2.0)
-        setting = json.load(open('setting.json'))['atcoder']
+        setting = json.load(open(self.options.setting_file_path))['atcoder']
         subprocess.call([setting['browser'], 'http://%s.contest.atcoder.jp/submissions/me' % self.contest_id])
 
     def get_language_id_from_extension(self):
@@ -768,7 +768,7 @@ class KCS(OnlineJudge):
         print('Submit ... ' + str(p.getcode()))
 
         time.sleep(2.0)
-        setting = json.load(open('setting.json'))['kcs']
+        setting = json.load(open(self.options.setting_file_path))['kcs']
         subprocess.call([setting['browser'], 'http://kcs.miz-miz.biz/contest/%s/submissions/page=1' % self.contest_id])
 
     def get_language_id_from_extension(self):
