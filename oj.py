@@ -45,8 +45,8 @@ def main():
     # contest = parser.add_mutually_exclusive_group()
     contest = parser.add_argument_group(title="contest")
     contest.add_argument("--poj", action="store_const",
-                      const="poj", dest="contest", default="poj",
-                      help="PKU JudgeOnline (default)")
+                      const="poj", dest="contest",
+                      help="PKU JudgeOnline")
     contest.add_argument("--codeforces", action="store_const",
                       const="codeforces", dest="contest",
                       help="CodeForces")
@@ -157,7 +157,7 @@ def main():
     elif options.contest == "poj":
         online_judge = POJ(options, args)
     else:
-        assert False
+        parser.error("contest is not given")
 
     if options.testcase_directory is None:
         if 'testcase_directory' in setting:
