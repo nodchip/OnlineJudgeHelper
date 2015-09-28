@@ -37,6 +37,9 @@ def main():
     parser.add_argument('--setting-file-path', action='store',
                       dest='setting_file_path', default=None,
                       help='Specify the setting file path')
+    parser.add_argument('--testcase-directory', action='store',
+                      dest='testcase_directory', default=None,
+                      help='Specify the directory for testcases')
 
     # switch online judge
     # contest = parser.add_mutually_exclusive_group()
@@ -154,6 +157,11 @@ def main():
         online_judge = POJ(options, args)
     else:
         assert False
+
+    if options.testcase_directory is None:
+        options.testcase_directory = os.curdir
+    elif not os.path.exists(options.testcase_directory):
+        os.makedirs(options.testcase_directory)
 
     if options.command == "add_test_case":
         online_judge.add_test_case_template()

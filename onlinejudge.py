@@ -39,9 +39,13 @@ class OnlineJudge:
     def get_url(self):
         raise NotImplementedError
 
+    def get_input_file_path(self, index):
+        return os.path.join(self.options.testcase_directory, self.get_input_file_name(index))
     def get_input_file_name(self, index):
         return self.__class__.__name__ + '.' + self.problem_id + '.' + str(index) + '.in.txt'
 
+    def get_output_file_path(self, index):
+        return os.path.join(self.options.testcase_directory, self.get_output_file_name(index))
     def get_output_file_name(self, index):
         return self.__class__.__name__ + '.' + self.problem_id + '.' + str(index) + '.out.txt'
 
@@ -141,7 +145,7 @@ class OnlineJudge:
             print('CompileError')
             exit(-1)
 
-        if not os.path.exists(self.get_input_file_name(0)) or not os.path.exists(self.get_output_file_name(0)):
+        if not os.path.exists(self.get_input_file_path(0)) or not os.path.exists(self.get_output_file_path(0)):
             print('downloading...')
             self.download()
 
@@ -153,8 +157,8 @@ class OnlineJudge:
         no_input_files = True
 
         for index in range(100):
-            input_file_path = self.get_input_file_name(index)
-            output_file_path = self.get_output_file_name(index)
+            input_file_path = self.get_input_file_path(index)
+            output_file_path = self.get_output_file_path(index)
 
             if not os.path.exists(input_file_path):
                 break
@@ -189,8 +193,8 @@ class OnlineJudge:
 
     def add_test_case_template(self):
         for index in range(100):
-            input_filepath = self.get_input_file_name(index)
-            output_filepath = self.get_output_file_name(index)
+            input_filepath = self.get_input_file_path(index)
+            output_filepath = self.get_output_file_path(index)
             if os.path.isfile(input_filepath):
                 continue
             open(input_filepath, 'w').close()
@@ -239,8 +243,8 @@ class POJ(OnlineJudge):
         result = p.findall(html)
         n = len(result) / 2;
         for index in range(n):
-            input_file_name = self.get_input_file_name(index)
-            output_file_name = self.get_output_file_name(index)
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
             open(input_file_name, 'w').write(self.format_pre(result[index * 2]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
@@ -296,8 +300,8 @@ class CodeForces(OnlineJudge):
         result = p.findall(html)
         n = len(result) / 2;
         for index in range(n):
-            input_file_name = self.get_input_file_name(index)
-            output_file_name = self.get_output_file_name(index)
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
             open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
@@ -332,8 +336,8 @@ class MJudge(OnlineJudge):
         result = p.findall(html)
         n = len(result) / 2;
         for index in range(n):
-            input_file_name = self.get_input_file_name(index)
-            output_file_name = self.get_output_file_name(index)
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
             open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
@@ -376,8 +380,8 @@ class AOJ(OnlineJudge):
         result = p.findall(html)
         n = len(result) / 2;
         for index in range(n):
-            input_file_name = self.get_input_file_name(index)
-            output_file_name = self.get_output_file_name(index)
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
             open(input_file_name, 'w').write(self.format_pre(result[index * 2]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
@@ -432,8 +436,8 @@ class AOJ_test(OnlineJudge):
                     print("testcase in preparation")
                     break
                 output_data=self.download_html(index+1,"out")
-                input_file_name = self.get_input_file_name(index)
-                output_file_name = self.get_output_file_name(index)
+                input_file_name = self.get_input_file_path(index)
+                output_file_name = self.get_output_file_path(index)
                 open(input_file_name, 'w').write(input_data)
                 open(output_file_name, 'w').write(output_data)
             except:
@@ -463,8 +467,8 @@ class CodeChef(OnlineJudge):
         result = p.findall(html)
         n = len(result) / 2;
         for index in range(n):
-            input_file_name = self.get_input_file_name(index)
-            output_file_name = self.get_output_file_name(index)
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
             open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
@@ -491,8 +495,8 @@ class ImoJudge(OnlineJudge):
         result = p.findall(html)
         n = len(result) / 2;
         for index in range(n):
-            input_file_name = self.get_input_file_name(index)
-            output_file_name = self.get_output_file_name(index)
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
             open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
@@ -553,8 +557,8 @@ class AtCoder(OnlineJudge):
         result = p.findall(html)
         n = len(result) / 2
         for index in range(n):
-            input_file_name = self.get_input_file_name(index)
-            output_file_name = self.get_output_file_name(index)
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
             open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
@@ -628,8 +632,8 @@ class ZOJContest(OnlineJudge):
         result = p.findall(html)
         n = len(result) / 2;
         for index in range(n):
-            input_file_name = self.get_input_file_name(index)
-            output_file_name = self.get_output_file_name(index)
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
             open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
@@ -687,8 +691,8 @@ class NPCA(OnlineJudge):
         result = p.findall(html)
         n = len(result) / 2;
         for index in range(n):
-            input_file_name = self.get_input_file_name(index)
-            output_file_name = self.get_output_file_name(index)
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
             open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
@@ -746,8 +750,8 @@ class KCS(OnlineJudge):
         result = p.findall(html)
         n = len(result) / 2
         for index in range(n):
-            input_file_name = self.get_input_file_name(index)
-            output_file_name = self.get_output_file_name(index)
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
             open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
@@ -792,8 +796,8 @@ class yukicoder(OnlineJudge):
         result = p.findall(html)
         n = len(result) / 2
         for index in range(n):
-            input_file_name = self.get_input_file_name(index)
-            output_file_name = self.get_output_file_name(index)
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
             open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True

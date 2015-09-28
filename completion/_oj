@@ -13,6 +13,7 @@ _arguments -s -S \
   "--source-file-name[Specify the source file name]::SOURCE_FILE_NAME:_files" \
   "-i[Specify the source file name]::SOURCE_FILE_NAME:_files" \
   "--setting-file-path[Specify the setting file path]::SETTING_FILE_PATH:_files" \
+  "--testcase-directory[Specify the directory for testcases]::TESTCASE_DIRECTORY:_files" \
   "--titech-pubnet[Use titech pubnet proxy Use floating point validator and set max error]" \
   "-t[Use titech pubnet proxy Use floating point validator and set max error]" \
   "--r19[use Ruby1.9 for test]" \
