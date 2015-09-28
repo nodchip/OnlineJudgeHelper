@@ -125,6 +125,10 @@ def main():
             parser.error("setting.json is not found")
     setting = json.load(open(options.setting_file_path))
 
+    if options.source_file_name is None:
+        if 'source_file_name' in setting:
+            options.source_file_name = setting['source_file_name']
+
     online_judge = None
     if options.contest == "zoj_contest":
         online_judge = ZOJContest(options, args)
