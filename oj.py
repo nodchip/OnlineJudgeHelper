@@ -129,6 +129,7 @@ def main():
             print "Select setting.json."
             parser.print_help()
             return
+    setting = json.load(open(options.setting_file_path))
 
     online_judge = None
     if options.contest == "zoj_contest":
@@ -159,8 +160,11 @@ def main():
         assert False
 
     if options.testcase_directory is None:
-        options.testcase_directory = os.curdir
-    elif not os.path.exists(options.testcase_directory):
+        if 'testcase_directory' in setting:
+            options.testcase_directory = setting['testcase_directory']
+        else:
+            options.testcase_directory = os.curdir
+    if not os.path.exists(options.testcase_directory):
         os.makedirs(options.testcase_directory)
 
     if options.command == "add_test_case":
