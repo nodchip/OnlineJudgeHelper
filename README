@@ -68,6 +68,14 @@ json形式で書いたものです。
   "zoj":{"user_id":"nodchip","password":"fufagufa", "browser":"C:/Users/nodchip/AppData/Local/Google/Chrome/Application/chrome.exe"}
 }
 
+また、setting.jsonを用いて、オプション--testcase-directory、オプション--source-file-nameの既定値を指定することもできます。
+
+例:
+{
+    "testcase_directory":"test",
+    "source_file_name":"a.cpp",
+}
+
 3-2. オプション
   -h, --help            ヘルプを出力します
   -c, --create-solution-template-file
@@ -80,6 +88,8 @@ json形式で書いたものです。
                         ソースコードファイル名を指定します
   --setting-file-path=SETTING_FILE_PATH
                         設定ファイルのパスを指定します
+  --testcase-directory=TESTCASE_DIRECTORY
+                        テストケースを置くディレクトリを指定します
   -t, --titech-pubnet   東工大内ネットワークからプロキシを使用して接続します
   -e FLOATING_POINT     許容誤差を指定して浮動小数バリデータを使用します
   -d, --download        サンプル入出力データのダウンロードのみ行います
