@@ -8,7 +8,7 @@ class Validator:
 
 class DiffValidator(Validator):
     def validate(self, answer_path, output_path):
-        return subprocess.call(['diff', answer_path, output_path, '-y', '--strip-trailing-cr', '-W', '79', '-a', '-d']) == 0
+        return subprocess.call(['diff', '-y', '-d', answer_path, output_path]) == 0
 
 
 class FloatingPointValidator(Validator):
