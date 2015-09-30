@@ -1,12 +1,14 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 import cookielib
+import glob
 import json
 import os
 import os.path
 import re
 import shutil
 import subprocess
+import sys
 import time
 import urllib
 import urllib2
@@ -153,20 +155,17 @@ class OnlineJudge:
 
         validator = self.get_validator()
 
-        accept = 0
+        wa = 0
         total = 0
         no_input_files = True
 
-        for index in range(100):
-            input_file_path = self.get_input_file_path(index)
-            output_file_path = self.get_output_file_path(index)
-
-            if not os.path.exists(input_file_path):
-                break
+        for input_file_path in glob.iglob(os.path.join(self.options.testcase_directory, '*.in.txt')):
+            case_name = input_file_path.rsplit('.in.txt', 1)[0]
+            output_file_path = case_name + '.out.txt'
 
             no_input_files = False
 
-            print(clr.GREEN + ('----- Case #%d -----' % index) + clr.RESET)
+            print(clr.GREEN + '----- Case {} -----'.format(case_name) + clr.RESET)
 
             execution_time = solution.execute(input_file_path, 'out.txt')
 
@@ -176,31 +175,21 @@ class OnlineJudge:
             if os.path.exists(output_file_path):
                 result = validator.validate(output_file_path, 'out.txt')
                 if result:
-                    accept += 1
                     print(clr.BLUE + ('ok (%f sec)' % execution_time) + clr.RESET)
                 else:
                     print(clr.RED + ('WA (%f sec)' % execution_time) + clr.RESET)
+                    wa += 1
             else:
-                subprocess.Popen(['cp', 'out.txt', output_file_path]).wait()
+                sys.stdout.write(open('out.txt').read())
+                print(clr.GREEN + ('executed (%f sec)' % execution_time) + clr.RESET)
             total += 1
 
         if no_input_files:
             print(clr.GREEN + 'No input files...' + clr.RESET)
-        elif accept == total:
+        elif wa == 0:
             print(clr.BLUE + 'OK ({} cases) (max {} sec)'.format(total, max_time) + clr.RESET)
         else:
-            print(clr.RED + 'WrongAnswer ({} WAs in {} cases) (max {} sec)'.format(total - accept, total, max_time) + clr.RESET)
-
-    def add_test_case_template(self):
-        for index in range(100):
-            input_filepath = self.get_input_file_path(index)
-            output_filepath = self.get_output_file_path(index)
-            if os.path.isfile(input_filepath):
-                continue
-            open(input_filepath, 'w').close()
-            open(output_filepath, 'w').close()
-            print("Test case template file " + str(index) + " is created.")
-            return
+            print(clr.RED + 'WrongAnswer ({} WAs in {} cases) (max {} sec)'.format(wa, total, max_time) + clr.RESET)
 
     def submit(self):
         raise NotImplementedError

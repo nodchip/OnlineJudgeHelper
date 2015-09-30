@@ -26,8 +26,6 @@ _arguments -s -S \
   "-c[Build and check the solution]" \
   "--submit[Submit the solution]" \
   "-s[Submit the solution]" \
-  "--add-test-case-template[Add a test case template file]" \
-  "-a[Add a test case template file]" \
   "--download[Only download the test cases]" \
   "-d[Only download the test cases]" \
   "--poj[PKU JudgeOnline (default)]" \

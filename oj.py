@@ -27,9 +27,6 @@ def main():
     command.add_argument("-s", "--submit", action="store_const",
                       const="submit", dest="command",
                       help="Submit the solution")
-    command.add_argument("-a", "--add-test-case-template", action="store_const",
-                      const="add_test_case", dest="command",
-                      help="Add a test case template file")
     command.add_argument('-d', '--download', action="store_const",
                       const='download', dest="command",
                       help="Only download the test cases")
@@ -165,9 +162,7 @@ def main():
     if not os.path.exists(options.testcase_directory):
         os.makedirs(options.testcase_directory)
 
-    if options.command == "add_test_case":
-        online_judge.add_test_case_template()
-    elif options.command == "submit":
+    if options.command == "submit":
         online_judge.submit()
     elif options.command == "create_solution_template_file":
         online_judge.create_solution_template_file()
