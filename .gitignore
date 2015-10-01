@@ -1,0 +1,11 @@
+setting.json
+out.txt
+*.in.txt
+*.out.txt
+*.zip
+*.class
+*.exe
+yukicoder_test.*/
+
+yuki
+yuki_test
