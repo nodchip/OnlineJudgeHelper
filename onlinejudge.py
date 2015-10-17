@@ -395,8 +395,8 @@ class AOJ(OnlineJudge):
         subprocess.call([setting['browser'], 'http://judge.u-aizu.ac.jp/onlinejudge/status.jsp'])
     
     def get_language_id_from_extension(self):
-        return {'.cpp':'C++',
-                '.cc':'C++',
+        return {'.cpp':'C++11',
+                '.cc':'C++11',
                 '.c':'C',
                 '.java':'JAVA',
                 '.cs':'C#',
