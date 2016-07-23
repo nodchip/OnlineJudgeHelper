@@ -215,3 +215,11 @@ class SolutionD(Solution):
         return subprocess.call(['dmd', '-m64', '-w', '-wi', '-O', '-release', '-inline', '-ofa.out', self.source_file_name]) == 0
     def get_execute_command_line(self):
         return ['./a.out']
+
+class SolutionOCaml(Solution):
+    def __init__(self, source_file_name):
+        Solution.__init__(self, source_file_name)
+    def compile(self):
+        return subprocess.call(['ocamlc', '-o', self.get_a_out_name(), self.source_file_name]) == 0
+    def get_execute_command_line(self):
+        return ['./' + self.get_a_out_name()]

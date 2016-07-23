@@ -129,6 +129,8 @@ class OnlineJudge:
             return SolutionGo(source_file_name)
         elif ext == '.d':
             return SolutionD(source_file_name)
+        elif ext == '.ml':
+            return SolutionOCaml(source_file_name)
         else:
             return Solution(source_file_name)
 
