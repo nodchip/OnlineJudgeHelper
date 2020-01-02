@@ -535,20 +535,20 @@ class AtCoder(OnlineJudge):
             postdata['name'] = setting['user_id']
             postdata['password'] = setting['password']
             postdata['submit'] = 'login'
-            params = urllib.parse.urlencode(postdata)
+            params = urllib.parse.urlencode(postdata).encode('utf-8')
             p = opener.open('https://%s.contest.atcoder.jp/login' % self.contest_id, params)
             print(('Login ... ' + str(p.getcode())))
         return self.opener
 
     def download(self):
-        html = self.download_html()
+        html = self.download_html().decode('utf-8')
         if '入力例' in html:
             html = html[html.find('入力例'):]
         if 'Sample Input' in html:
             html = html[html.find('Sample Input'):]
         p = re.compile('<pre.*?>(.+?)</pre>', re.M | re.S | re.I)
         result = p.findall(html)
-        n = len(result) / 2
+        n = len(result) // 2
         for index in range(n):
             input_file_name = self.get_input_file_path(index)
             output_file_name = self.get_output_file_path(index)
@@ -557,12 +557,12 @@ class AtCoder(OnlineJudge):
         return True
 
     def submit(self):
-        html = self.download_html()
+        html = self.download_html().decode('utf-8')
         p = re.compile('"/submit\\?task_id=(.+?)"', re.M | re.S | re.I)
         result = p.findall(html)
         task_id = int(result[0])
 
-        html = self.get_opener().open('https://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id)).read()
+        html = self.get_opener().open('https://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id)).read().decode('utf-8')
         p = re.compile('name="__session" value="([0-9a-f]+?)"', re.M | re.S | re.I)
         result = p.findall(html)
         session = result[0]
@@ -575,7 +575,7 @@ class AtCoder(OnlineJudge):
         postdata['language_id_%d' % task_id] = self.get_language_id()
         postdata['source_code'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'submit'
-        params = urllib.parse.urlencode(postdata)
+        params = urllib.parse.urlencode(postdata).encode('utf-8')
         p = opener.open('https://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
         print(('Submit ... ' + str(p.getcode())))
 
