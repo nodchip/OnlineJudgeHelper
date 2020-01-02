@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 import subprocess
 
 class Validator:
@@ -21,7 +21,7 @@ class FloatingPointValidator(Validator):
         answer_file = open(answer_path)
         output_file = open(output_path)
         result = True
-        print('%-25s %-25s   %-15s %s' % ('answer', 'output', 'diff', 'reldiff'))
+        print(('%-25s %-25s   %-15s %s' % ('answer', 'output', 'diff', 'reldiff')))
         while True:
             answer_line = answer_file.readline()
             output_line = output_file.readline()
@@ -51,5 +51,5 @@ class FloatingPointValidator(Validator):
                 separator = '|'
                 result = False
 
-            print('%-25s %-25s %s %-15e %e' % (answer_line, output_line, separator, diff, reldiff))
+            print(('%-25s %-25s %s %-15e %e' % (answer_line, output_line, separator, diff, reldiff)))
         return result

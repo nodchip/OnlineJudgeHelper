@@ -1,6 +1,6 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import cookielib
+import http.cookiejar
 import glob
 import json
 import os
@@ -10,8 +10,8 @@ import shutil
 import subprocess
 import sys
 import time
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import zipfile
 
 try:
@@ -80,12 +80,12 @@ class OnlineJudge:
 
     def get_opener(self):
         if self.opener == None:
-            cj = cookielib.CookieJar()
-            cjhdr = urllib2.HTTPCookieProcessor(cj)
+            cj = http.cookiejar.CookieJar()
+            cjhdr = urllib.request.HTTPCookieProcessor(cj)
             if self.proxies == None:
-                self.opener = urllib2.build_opener(cjhdr)
+                self.opener = urllib.request.build_opener(cjhdr)
             else:
-                self.opener = urllib2.build_opener(cjhdr, urllib2.ProxyHandler(self.proxies))
+                self.opener = urllib.request.build_opener(cjhdr, urllib.request.ProxyHandler(self.proxies))
         return self.opener
 
     def get_solution(self):
@@ -167,7 +167,7 @@ class OnlineJudge:
 
             no_input_files = False
 
-            print(clr.GREEN + '----- Case {} -----'.format(case_name) + clr.RESET)
+            print((clr.GREEN + '----- Case {} -----'.format(case_name) + clr.RESET))
 
             execution_time = solution.execute(input_file_path, 'out.txt')
 
@@ -177,21 +177,21 @@ class OnlineJudge:
             if os.path.exists(output_file_path):
                 result = validator.validate(output_file_path, 'out.txt')
                 if result:
-                    print(clr.BLUE + ('ok (%f sec)' % execution_time) + clr.RESET)
+                    print((clr.BLUE + ('ok (%f sec)' % execution_time) + clr.RESET))
                 else:
-                    print(clr.RED + ('WA (%f sec)' % execution_time) + clr.RESET)
+                    print((clr.RED + ('WA (%f sec)' % execution_time) + clr.RESET))
                     wa += 1
             else:
                 sys.stdout.write(open('out.txt').read())
-                print(clr.GREEN + ('executed (%f sec)' % execution_time) + clr.RESET)
+                print((clr.GREEN + ('executed (%f sec)' % execution_time) + clr.RESET))
             total += 1
 
         if no_input_files:
-            print(clr.GREEN + 'No input files...' + clr.RESET)
+            print((clr.GREEN + 'No input files...' + clr.RESET))
         elif wa == 0:
-            print(clr.BLUE + 'OK ({} cases) (max {} sec)'.format(total, max_time) + clr.RESET)
+            print((clr.BLUE + 'OK ({} cases) (max {} sec)'.format(total, max_time) + clr.RESET))
         else:
-            print(clr.RED + 'WrongAnswer ({} WAs in {} cases) (max {} sec)'.format(wa, total, max_time) + clr.RESET)
+            print((clr.RED + 'WrongAnswer ({} WAs in {} cases) (max {} sec)'.format(wa, total, max_time) + clr.RESET))
 
     def submit(self):
         raise NotImplementedError
@@ -201,16 +201,18 @@ class OnlineJudge:
             src = self.get_source_file_name()
             dst = self.get_source_file_name() + ".bak"
             shutil.copyfile(src, dst)
-            print('Copied %s to %s' % (src, dst))
-        except IOError, (errno, strerror):
-            print("I/O error(%s): %s" % (errno, strerror))
+            print(('Copied %s to %s' % (src, dst)))
+        except IOError as xxx_todo_changeme:
+            (errno, strerror) = xxx_todo_changeme.args
+            print(("I/O error(%s): %s" % (errno, strerror)))
         try:
             src = 'template.cpp'
             dst = self.get_source_file_name()
             shutil.copyfile(src, dst)
-            print('Copied %s to %s' % (src, dst))
-        except IOError, (errno, strerror):
-            print("I/O error(%s): %s" % (errno, strerror))
+            print(('Copied %s to %s' % (src, dst)))
+        except IOError as xxx_todo_changeme1:
+            (errno, strerror) = xxx_todo_changeme1.args
+            print(("I/O error(%s): %s" % (errno, strerror)))
 
     def get_language_id(self):
         source_file_name = self.get_source_file_name()
@@ -247,18 +249,18 @@ class POJ(OnlineJudge):
         postdata = dict()
         postdata['user_id1'] = setting['user_id']
         postdata['password1'] = setting['password']
-        params = urllib.urlencode(postdata)
+        params = urllib.parse.urlencode(postdata)
         p = opener.open('http://poj.org/login', params)
-        print('Login ... ' + str(p.getcode()))
+        print(('Login ... ' + str(p.getcode())))
 
         postdata = dict()
         postdata['language'] = self.get_language_id()
         postdata['problem_id'] = self.problem_id
         postdata['source'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'Submit'
-        params = urllib.urlencode(postdata)
+        params = urllib.parse.urlencode(postdata)
         p = opener.open('http://poj.org/submit', params)
-        print('Submit ... ' + str(p.getcode()))
+        print(('Submit ... ' + str(p.getcode())))
 
         time.sleep(2.0)
         subprocess.call([setting['browser'], 'http://poj.org/status?problem_id=&user_id=' + setting['user_id'] + '&result=&language='])
@@ -312,7 +314,7 @@ class MJudge(OnlineJudge):
         postdata = dict()
         postdata['user'] = setting['user_id']
         postdata['pswd'] = setting['password']
-        params = urllib.urlencode(postdata)
+        params = urllib.parse.urlencode(postdata)
         p = opener.open('http://m-judge.maximum.vc/login.cgi', params)
 
         url = self.get_url()
@@ -340,18 +342,18 @@ class MJudge(OnlineJudge):
         postdata = dict()
         postdata['user'] = setting['user_id']
         postdata['pswd'] = setting['password']
-        params = urllib.urlencode(postdata)
+        params = urllib.parse.urlencode(postdata)
         p = opener.open('http://m-judge.maximum.vc/login.cgi', params)
-        print('Login ... ' + str(p.getcode()))
+        print(('Login ... ' + str(p.getcode())))
 
         postdata = dict()
         postdata['m'] = '1'
         postdata['pid'] = self.problem_id
         postdata['lang'] = '1'
         postdata['code'] = open(self.get_source_file_name()).read()
-        params = urllib.urlencode(postdata)
+        params = urllib.parse.urlencode(postdata)
         p = opener.open('http://m-judge.maximum.vc/submit.cgi', params)
-        print('Submit ... ' + str(p.getcode()))
+        print(('Submit ... ' + str(p.getcode())))
 
         subprocess.call([setting['browser'], 'http://m-judge.maximum.vc/result.cgi'])
 
@@ -389,9 +391,9 @@ class AOJ(OnlineJudge):
         postdata['language'] = self.get_language_id()
         postdata['sourceCode'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'Send'
-        params = urllib.urlencode(postdata)
+        params = urllib.parse.urlencode(postdata)
         p = opener.open('http://judge.u-aizu.ac.jp/onlinejudge/servlet/Submit', params)
-        print('Submit ... ' + str(p.getcode()))
+        print(('Submit ... ' + str(p.getcode())))
 
         time.sleep(2.0)
         subprocess.call([setting['browser'], 'http://judge.u-aizu.ac.jp/onlinejudge/status.jsp'])
@@ -432,7 +434,7 @@ class AOJ_test(OnlineJudge):
                 open(input_file_name, 'w').write(input_data)
                 open(output_file_name, 'w').write(output_data)
             except:
-                print("testcase notfound: index%d"%index)
+                print(("testcase notfound: index%d"%index))
                 break
         return True
 
@@ -533,9 +535,9 @@ class AtCoder(OnlineJudge):
             postdata['name'] = setting['user_id']
             postdata['password'] = setting['password']
             postdata['submit'] = 'login'
-            params = urllib.urlencode(postdata)
+            params = urllib.parse.urlencode(postdata)
             p = opener.open('https://%s.contest.atcoder.jp/login' % self.contest_id, params)
-            print('Login ... ' + str(p.getcode()))
+            print(('Login ... ' + str(p.getcode())))
         return self.opener
 
     def download(self):
@@ -573,9 +575,9 @@ class AtCoder(OnlineJudge):
         postdata['language_id_%d' % task_id] = self.get_language_id()
         postdata['source_code'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'submit'
-        params = urllib.urlencode(postdata)
+        params = urllib.parse.urlencode(postdata)
         p = opener.open('https://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
-        print('Submit ... ' + str(p.getcode()))
+        print(('Submit ... ' + str(p.getcode())))
 
         time.sleep(2.0)
         setting = json.load(open(self.options.setting_file_path))['atcoder']
@@ -610,9 +612,9 @@ class ZOJContest(OnlineJudge):
             postdata['password'] = setting['password']
             postdata['rememberMe'] = '1'
             postdata['submit'] = 'Login'
-            params = urllib.urlencode(postdata)
+            params = urllib.parse.urlencode(postdata)
             p = opener.open('http://acm.zju.edu.cn/onlinejudge/login.do', params)
-            print('Login ... ' + str(p.getcode()))
+            print(('Login ... ' + str(p.getcode())))
         return self.opener
 
     def download(self):
@@ -637,9 +639,9 @@ class ZOJContest(OnlineJudge):
         postdata['languageId'] = '2'
         postdata['source'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'Submit'
-        params = urllib.urlencode(postdata)
+        params = urllib.parse.urlencode(postdata)
         p = opener.open('http://acm.zju.edu.cn/onlinejudge/contestSubmit.do')
-        print('Submit ... ' + str(p.getcode()))
+        print(('Submit ... ' + str(p.getcode())))
 
     def get_language_id_from_extension(self):
         return {'.cpp':'2',
@@ -669,9 +671,9 @@ class NPCA(OnlineJudge):
             postdata['data[User][password]'] = setting['password']
             postdata['data[User][active]'] = '1'
             postdata['submit'] = 'Login'
-            params = urllib.urlencode(postdata)
+            params = urllib.parse.urlencode(postdata)
             p = opener.open('http://judge.npca.jp/users/login', params)
-            print('Login ... ' + str(p.getcode()))
+            print(('Login ... ' + str(p.getcode())))
         return self.opener
 
     def download(self):
@@ -696,9 +698,9 @@ class NPCA(OnlineJudge):
         postdata['data[Submission][language_id]'] = self.get_language_id()
         postdata['data[Submission][source]'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'Submit'
-        params = urllib.urlencode(postdata)
+        params = urllib.parse.urlencode(postdata)
         p = opener.open('http://judge.npca.jp/submissions/submit/%s/' % self.problem_id)
-        print('Submit ... ' + str(p.getcode()))
+        print(('Submit ... ' + str(p.getcode())))
 
     def get_language_id_from_extension(self):
         return {'.cpp':'2',
@@ -728,9 +730,9 @@ class KCS(OnlineJudge):
             postdata['user_id'] = setting['user_id']
             postdata['password'] = setting['password']
             postdata['submit'] = '送信'
-            params = urllib.urlencode(postdata)
+            params = urllib.parse.urlencode(postdata)
             p = opener.open('http://kcs.miz-miz.biz/user/login', params)
-            print('Login ... ' + str(p.getcode()))
+            print(('Login ... ' + str(p.getcode())))
         return self.opener
 
     def download(self):
@@ -754,9 +756,9 @@ class KCS(OnlineJudge):
         postdata['language'] = self.get_language_id()
         postdata['code'] = open(self.get_source_file_name()).read()
         postdata['submit'] = 'submit'
-        params = urllib.urlencode(postdata)
+        params = urllib.parse.urlencode(postdata)
         p = opener.open('http://kcs.miz-miz.biz/contest/%s/submit/%s' % (self.contest_id, self.problem_id), params)
-        print('Submit ... ' + str(p.getcode()))
+        print(('Submit ... ' + str(p.getcode())))
 
         time.sleep(2.0)
         setting = json.load(open(self.options.setting_file_path))['kcs']
@@ -810,7 +812,7 @@ class yukicoder_test(OnlineJudge):
     def get_input_file_name(self, index):
         if len(self.testcase_names) <= index:
             return "----invalid name" # とりあえずなさそうな名前を返す
-        print(self.testcase_names[index])
+        print((self.testcase_names[index]))
         return self.__class__.__name__ + '.' + self.problem_id + '/test_in/' + self.testcase_names[index]
 
     def get_output_file_name(self, index):
@@ -832,7 +834,7 @@ class yukicoder_test(OnlineJudge):
                 self.testcase_names = [os.path.basename(i) for i in z.namelist() if i[0:7]=="test_in"]
                 z.extractall(self.__class__.__name__ + '.' + self.problem_id)
             return True
-        except urllib2.HTTPError as error:
+        except urllib.error.HTTPError as error:
             print(error)
             return False
 
