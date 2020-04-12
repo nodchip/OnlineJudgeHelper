@@ -36,7 +36,7 @@ class SolutionC(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
-        return subprocess.call(['gcc', '-O2', '-o', self.get_a_out_name(), '-Wno-deprecated', '-Wall', self.source_file_name]) == 0
+        return subprocess.call(['gcc', '-O2', '-o', self.get_a_out_name(), '-Wno-deprecated', '-Wall', '-std=gnu11', self.source_file_name]) == 0
     def get_execute_command_line(self):
         return ['./' + self.get_a_out_name()]
 
@@ -45,7 +45,7 @@ class SolutionCxx(Solution):
     def __init__(self, source_file_name):
         Solution.__init__(self, source_file_name)
     def compile(self):
-        return subprocess.call(['g++', '-O2', '-o', self.get_a_out_name(), '-Wno-deprecated', '-Wall', '-std=c++11', self.source_file_name]) == 0
+        return subprocess.call(['g++', '-O2', '-o', self.get_a_out_name(), '-Wno-deprecated', '-Wall', '-std=gnu++17', self.source_file_name]) == 0
     def get_execute_command_line(self):
         return ['./' + self.get_a_out_name()]
 
@@ -97,7 +97,7 @@ class SolutionPyPy(Solution):
         return True
     def get_execute_env(self):
         env=os.environ.copy()
-        env['PYENV_VERSION']='pypy-2.5.0'
+        env['PYENV_VERSION']='pypy-7.3.0'
         return env
     def get_execute_command_line(self):
         return ['pypy', self.source_file_name]
@@ -109,7 +109,7 @@ class SolutionPython3(Solution):
         return True
     def get_execute_env(self):
         env=os.environ.copy()
-        env['PYENV_VERSION']='3.4.2'
+        env['PYENV_VERSION']='3.8.2'
         return env
     def get_execute_command_line(self):
         return ['python3', self.source_file_name]
@@ -121,7 +121,7 @@ class SolutionPyPy3(Solution):
         return True
     def get_execute_env(self):
         env=os.environ.copy()
-        env['PYENV_VERSION']='pypy3-2.4.0'
+        env['PYENV_VERSION']='pypy3-7.3.0'
         return env
     def get_execute_command_line(self):
         return ['pypy3', self.source_file_name]
@@ -143,7 +143,7 @@ class SolutionRuby(Solution):
         return True
     def get_execute_env(self):
         env=os.environ.copy()
-        env['RBENV_VERSION']='2.2.0'
+        env['RBENV_VERSION']='2.7.1'
         return env
     def get_execute_command_line(self):
         return ['ruby', self.source_file_name]
@@ -185,7 +185,7 @@ class SolutionScala(Solution):
         Solution.__init__(self, source_file_name)
     def get_execute_env(self):
         env=os.environ.copy()
-        env['SCALAENV_VERSION']='scala-2.11.5'
+        env['SCALAENV_VERSION']='scala-2.13.1'
     def compile(self):
         return subprocess.call(['scalac', self.source_file_name],env=self.get_execute_env()) == 0
     def get_execute_command_line(self):

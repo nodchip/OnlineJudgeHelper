@@ -584,15 +584,15 @@ class AtCoder(OnlineJudge):
         subprocess.call([setting['browser'], 'https://%s.contest.atcoder.jp/submissions/me' % self.contest_id])
 
     def get_language_id_from_extension(self):
-        return {'.cpp':'10',
-                '.cc':'10',
-                '.c':'1',
-                '.java':'3',
-                '.php':'5',
-                '.py':'7',
-                '.pl':'8',
-                '.rb':'9',
-                '.hs':'11'}
+        return {'.cpp':'4003',
+                '.cc':'4011',
+                '.c':'4001',
+                '.java':'4005',
+                '.php':'4044',
+                '.py':'4006',
+                '.pl':'4042',
+                '.rb':'4049',
+                '.hs':'4027'}
 
 
 class ZOJContest(OnlineJudge):
