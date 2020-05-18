@@ -547,10 +547,13 @@ class AtCoder(OnlineJudge):
             postdata['username'] = setting['user_id']
             postdata['password'] = setting['password']
             postdata['csrf_token'] = csrf_token
-            print(postdata)
+            # print(postdata)
             params = urllib.parse.urlencode(postdata).encode('utf-8')
-            p = opener.open('https://atcoder.jp/login', params)
-            print(('Login ... ' + str(p.getcode())))
+            try:
+                p = opener.open('https://atcoder.jp/login', params)
+                print('Login ... ' + str(p.getcode()))
+            except urllib.error.HTTPError:
+                print('Login Failed!!!')
             # print(p.read().decode('utf-8'))
         return self.opener
 
