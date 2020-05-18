@@ -504,7 +504,7 @@ class AtCoder(OnlineJudge):
         self.problem_id = self.assume_correct_probrem_id()
 
     def assume_correct_probrem_id(self):
-        result = re.match('(a[rb]c)(\d{3})', self.contest_id)
+        result = re.match(r'(a[rb]c)(\d{3})', self.contest_id)
         if result and self.problem_id in list('1234ABCDabcd'):
             contest_type = result.group(1)
             contest_id_number = int(result.group(2))
@@ -524,19 +524,24 @@ class AtCoder(OnlineJudge):
             return self.problem_id
 
     def get_url(self):
-        return "https://%s.contest.atcoder.jp/tasks/%s" % (self.contest_id, self.problem_id)
+        return "https://atcoder.jp/contests/%s/tasks/%s" % (self.contest_id, self.problem_id)
 
     def get_opener(self):
         if self.opener == None:
             opener = OnlineJudge.get_opener(self)
 
+            html = opener.open('https://atcoder.jp/login').read().decode('utf-8')
+            pattern = re.compile('<input type="hidden" name="csrf_token" value="(.+)" />')
+            result = pattern.findall(html)
+            csrf_token = result[0]
+
             setting = json.load(open(self.options.setting_file_path))['atcoder']
             postdata = dict()
-            postdata['name'] = setting['user_id']
+            postdata['username'] = setting['user_id']
             postdata['password'] = setting['password']
-            postdata['submit'] = 'login'
+            postdata['csrf_token'] = csrf_token
             params = urllib.parse.urlencode(postdata).encode('utf-8')
-            p = opener.open('https://%s.contest.atcoder.jp/login' % self.contest_id, params)
+            p = opener.open('https://atcoder.jp/login', params)
             print(('Login ... ' + str(p.getcode())))
         return self.opener
 
@@ -558,41 +563,33 @@ class AtCoder(OnlineJudge):
 
     def submit(self):
         html = self.download_html().decode('utf-8')
-        p = re.compile('"/submit\\?task_id=(.+?)"', re.M | re.S | re.I)
-        result = p.findall(html)
-        task_id = int(result[0])
-
-        html = self.get_opener().open('https://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id)).read().decode('utf-8')
-        p = re.compile('name="__session" value="([0-9a-f]+?)"', re.M | re.S | re.I)
-        result = p.findall(html)
-        session = result[0]
-
-        opener = self.get_opener()
+        pattern = re.compile('<input type="hidden" name="csrf_token" value="(.+)" />')
+        result = pattern.findall(html)
+        csrf_token = result[0]
 
         postdata = dict()
-        postdata['__session'] = session
-        postdata['task_id'] = task_id
-        postdata['language_id_%d' % task_id] = self.get_language_id()
-        postdata['source_code'] = open(self.get_source_file_name()).read()
-        postdata['submit'] = 'submit'
+        postdata['data.TaskScreenName'] = self.problem_id
+        postdata['data.LanguageId'] = self.get_language_id()
+        postdata['sourceCode'] = open(self.get_source_file_name()).read()
+        postdata['csrf_token'] = csrf_token
         params = urllib.parse.urlencode(postdata).encode('utf-8')
-        p = opener.open('https://%s.contest.atcoder.jp/submit?task_id=%d' % (self.contest_id, task_id), params)
+        p = self.get_opener().open('https://atcoder.jp/contests/%s/submit' % self.contest_id, params)
         print(('Submit ... ' + str(p.getcode())))
 
-        time.sleep(2.0)
+        time.sleep(3.0)
         setting = json.load(open(self.options.setting_file_path))['atcoder']
-        subprocess.call([setting['browser'], 'https://%s.contest.atcoder.jp/submissions/me' % self.contest_id])
+        subprocess.call([setting['browser'], 'https://atcoder.jp/contests/%s/submissions/me' % self.contest_id])
 
     def get_language_id_from_extension(self):
-        return {'.cpp':'4003',
-                '.cc':'4011',
-                '.c':'4001',
-                '.java':'4005',
-                '.php':'4044',
-                '.py':'4006',
-                '.pl':'4042',
-                '.rb':'4049',
-                '.hs':'4027'}
+        return {'.cpp':'3003',
+                '.cc':'3003',
+                '.c':'3002',
+                '.3016':'3016',
+                '.php':'3524',
+                '.py':'3023',
+                '.pl':'3522',
+                '.rb':'3024',
+                '.hs':'3014'}
 
 
 class ZOJContest(OnlineJudge):
