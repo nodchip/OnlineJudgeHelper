@@ -161,7 +161,13 @@ class OnlineJudge:
         total = 0
         no_input_files = True
 
-        for input_file_path in glob.iglob(os.path.join(self.options.testcase_directory, '*.in.txt')):
+        while True:
+            input_file_path = self.get_input_file_path(total)
+            if not os.path.exists(input_file_path):
+                break
+            if not os.path.exists(self.get_output_file_path(total)):
+                break
+
             case_name = input_file_path.rsplit('.in.txt', 1)[0]
             output_file_path = case_name + '.out.txt'
 
