@@ -531,6 +531,7 @@ class AtCoder(OnlineJudge):
             opener = OnlineJudge.get_opener(self)
 
             html = opener.open('https://atcoder.jp/login').read().decode('utf-8')
+            # print(html)
             pattern = re.compile('<input type="hidden" name="csrf_token" value="(.+)" />')
             result = pattern.findall(html)
             csrf_token = result[0]
@@ -540,9 +541,11 @@ class AtCoder(OnlineJudge):
             postdata['username'] = setting['user_id']
             postdata['password'] = setting['password']
             postdata['csrf_token'] = csrf_token
+            print(postdata)
             params = urllib.parse.urlencode(postdata).encode('utf-8')
             p = opener.open('https://atcoder.jp/login', params)
             print(('Login ... ' + str(p.getcode())))
+            # print(p.read().decode('utf-8'))
         return self.opener
 
     def download(self):
