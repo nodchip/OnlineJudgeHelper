@@ -533,28 +533,26 @@ class AtCoder(OnlineJudge):
         return "https://atcoder.jp/contests/%s/tasks/%s" % (self.contest_id, self.problem_id)
 
     def get_opener(self):
-        if self.opener == None:
-            opener = OnlineJudge.get_opener(self)
+        if self.opener:
+            return self.opener
 
-            html = opener.open('https://atcoder.jp/login').read().decode('utf-8')
-            # print(html)
-            pattern = re.compile('<input type="hidden" name="csrf_token" value="(.+)" />')
-            result = pattern.findall(html)
-            csrf_token = result[0]
+        opener = OnlineJudge.get_opener(self)
 
-            setting = json.load(open(self.options.setting_file_path))['atcoder']
-            postdata = dict()
-            postdata['username'] = setting['user_id']
-            postdata['password'] = setting['password']
-            postdata['csrf_token'] = csrf_token
-            # print(postdata)
-            params = urllib.parse.urlencode(postdata).encode('utf-8')
-            try:
-                p = opener.open('https://atcoder.jp/login', params)
-                print('Login ... ' + str(p.getcode()))
-            except urllib.error.HTTPError:
-                print('Login Failed!!!')
-            # print(p.read().decode('utf-8'))
+        html = opener.open('https://atcoder.jp/login').read().decode('utf-8')
+        # print(html)
+        pattern = re.compile('<input type="hidden" name="csrf_token" value="(.+)" />')
+        result = pattern.findall(html)
+        csrf_token = result[0]
+
+        setting = json.load(open(self.options.setting_file_path))['atcoder']
+        postdata = dict()
+        postdata['username'] = setting['user_id']
+        postdata['password'] = setting['password']
+        postdata['csrf_token'] = csrf_token
+        # print(postdata)
+        params = urllib.parse.urlencode(postdata).encode('utf-8')
+        p = opener.open('https://atcoder.jp/login', params)
+        print('Login ... ' + str(p.getcode()))
         return self.opener
 
     def download(self):
