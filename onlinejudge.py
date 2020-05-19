@@ -542,7 +542,7 @@ class AtCoder(OnlineJudge):
         # print(html)
         pattern = re.compile('<input type="hidden" name="csrf_token" value="(.+)" />')
         result = pattern.findall(html)
-        csrf_token = result[0]
+        csrf_token = result[0].replace('&#43;', '+')
 
         setting = json.load(open(self.options.setting_file_path))['atcoder']
         postdata = dict()
@@ -575,7 +575,7 @@ class AtCoder(OnlineJudge):
         html = self.download_html().decode('utf-8')
         pattern = re.compile('<input type="hidden" name="csrf_token" value="(.+)" />')
         result = pattern.findall(html)
-        csrf_token = result[0]
+        csrf_token = result[0].replace('&#43;', '+')
 
         postdata = dict()
         postdata['data.TaskScreenName'] = self.problem_id
