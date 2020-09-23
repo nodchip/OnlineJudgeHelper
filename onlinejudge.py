@@ -372,16 +372,18 @@ class AOJ(OnlineJudge):
         return 'http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=' + self.problem_id
 
     def download(self):
-        html = self.download_html()
-        index = html.rfind('>Sample Input</')
-        html = html[index:]
-        p = re.compile('<pre>(.+?)</pre>', re.M | re.S | re.I)
+        html = self.download_html().decode('utf-8')
+        if '入力例' in html:
+            html = html[html.find('入力例'):]
+        if 'Sample Input' in html:
+            html = html[html.find('Sample Input'):]
+        p = re.compile('<pre.*?>(.+?)</pre>', re.M | re.S | re.I)
         result = p.findall(html)
-        n = len(result) / 2;
+        n = len(result) // 2
         for index in range(n):
             input_file_name = self.get_input_file_path(index)
             output_file_name = self.get_output_file_path(index)
-            open(input_file_name, 'w').write(self.format_pre(result[index * 2]))
+            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
             open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
         return True
 
