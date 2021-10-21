@@ -852,3 +852,54 @@ class yukicoder_test(OnlineJudge):
             return self.options.source_file_name
         else:
             return '../yukicoder' + self.problem_id + '.rb'
+
+
+class TOPSIC(OnlineJudge):
+    host_name = None
+    examinations_id = None
+    def __init__(self, options, args):
+        OnlineJudge.__init__(self, options, args[2])
+        self.host_name = args[0]
+        self.examinations_id = args[1]
+
+    def get_url(self):
+        return f"https://{self.host_name}.topsic.org/examinations/{self.examinations_id}/problem_detail/{self.problem_id}"
+
+    def get_opener(self):
+        if self.opener:
+            return self.opener
+
+        opener = OnlineJudge.get_opener(self)
+
+        html = opener.open(f'https://{self.host_name}.topsic.org/users/sign_in').read().decode('utf-8')
+        # print(html)
+        pattern = re.compile('<input type="hidden" name="authenticity_token" value="(.+?)" />')
+        result = pattern.findall(html)
+        csrf_token = result[0].replace('&#43;', '+')
+
+        setting = json.load(open(self.options.setting_file_path))['topsic']
+        postdata = dict()
+        postdata['authenticity_token'] = csrf_token
+        postdata['user[login]'] = setting['user_id']
+        postdata['user[password]'] = setting['password']
+        # print(postdata)
+        params = urllib.parse.urlencode(postdata).encode('utf-8')
+        p = opener.open(f'https://{self.host_name}.topsic.org/users/sign_in', params)
+        print('Login ... ' + str(p.getcode()))
+        return self.opener
+
+    def download(self):
+        html = self.download_html().decode('utf-8')
+        if '入力例' in html:
+            html = html[html.find('入力例'):]
+        if 'Sample Input' in html:
+            html = html[html.find('Sample Input'):]
+        p = re.compile('<pre.*?>(.+?)</pre>', re.M | re.S | re.I)
+        result = p.findall(html)
+        n = len(result) // 2
+        for index in range(n):
+            input_file_name = self.get_input_file_path(index)
+            output_file_name = self.get_output_file_path(index)
+            open(input_file_name, 'w').write(self.format_pre(result[index * 2 + 0]))
+            open(output_file_name, 'w').write(self.format_pre(result[index * 2 + 1]))
+        return True

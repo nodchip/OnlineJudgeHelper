@@ -10,9 +10,9 @@ def main():
     usage = "usage: %(prog)s [options] ... [contest_id] problem_id"
     parser = argparse.ArgumentParser(usage=usage)
 
-    parser.add_argument('contest_id', nargs='?')
-    parser.add_argument('problem_id')
-
+    parser.add_argument('args', metavar='args', type=str, nargs='+',
+                    help='contents, problem_id, etc...')
+ 
     # command
     # command = parser.add_mutually_exclusive_group()
     # for title
@@ -70,6 +70,9 @@ def main():
     contest.add_argument("--yukicoder-test", action="store_const",
                       const="yukicoder_test", dest="contest",
                       help="yukicoder all test case")
+    contest.add_argument("--topsic", action="store_const",
+                      const="topsic", dest="contest",
+                      help="TOPSIC")
 
     # misc
     parser.add_argument('-i', '--source-file-name', action='store',
@@ -106,7 +109,7 @@ def main():
                       help="use PyPy3 for test")
 
     options = parser.parse_args()
-    args = [options.contest_id, options.problem_id]
+    args = options.args
     try:
         while True:
             args.remove(None)
@@ -151,6 +154,8 @@ def main():
         online_judge = yukicoder_test(options, args)
     elif options.contest == "poj":
         online_judge = POJ(options, args)
+    elif options.contest == "topsic":
+        online_judge = TOPSIC(options, args)
     else:
         parser.error("contest is not given")
 
