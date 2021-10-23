@@ -890,8 +890,8 @@ class TOPSIC(OnlineJudge):
 
     def download(self):
         html = self.download_html().decode('utf-8')
-        if '入力例' in html:
-            html = html[html.find('入力例'):]
+        if '<h3>Sample Input 1</h3>' in html:
+            html = html[html.find('<h3>Sample Input 1</h3>'):]
         if 'Sample Input' in html:
             html = html[html.find('Sample Input'):]
         p = re.compile('<pre.*?>(.+?)</pre>', re.M | re.S | re.I)
